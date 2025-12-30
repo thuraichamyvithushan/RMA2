@@ -1,0 +1,355 @@
+/* Admin Dashboard Modern Styling */
+
+.admin-dashboard-wrapper {
+    max-width: 100%;
+    padding: 1.5rem;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1.25rem 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-title-area h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+}
+
+/* Search Bar */
+.search-container {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+    max-width: 600px;
+}
+
+.modern-search-input {
+    width: 100%;
+    height: 44px;
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    padding: 0 16px;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-search-input:focus {
+    background: #ffffff;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    outline: none;
+}
+
+/* Main Table Card */
+.modern-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+/* Modern Table Styles */
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+.modern-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modern-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.modern-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+    color: #334155;
+    transition: background 0.1s;
+}
+
+
+/* Row Highlights - Restoring full row colors (Old Style but Modern Palette) */
+.row-received {
+    background-color: #fef9c3 !important;
+}
+
+/* Yellowish */
+.row-investigation {
+    background-color: #ffedd5 !important;
+}
+
+/* Orangish */
+.row-progress {
+    background-color: #fee2e2 !important;
+}
+
+/* Reddish */
+.row-dispatched {
+    background-color: #dcfce7 !important;
+}
+
+/* Greenish */
+
+.modern-table tr:hover td {
+    filter: brightness(0.96);
+}
+
+/* Status Badges */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.status-received {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status-investigating {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.status-active {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Inline Inputs */
+.modern-inline-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.modern-inline-input:hover {
+    background: #f1f5f9;
+}
+
+.modern-inline-input:focus {
+    background: #ffffff;
+    border-color: #ef4444;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* Action Buttons */
+.action-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-view {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-view:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-remove {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.btn-remove:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.sticky-column,
+.modern-table td[style*="position: sticky"] {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+}
+
+/* Ensure sticky columns inherit row background */
+.row-received td[style*="position: sticky"] {
+    background-color: #fef9c3 !important;
+}
+
+.row-investigation td[style*="position: sticky"] {
+    background-color: #ffedd5 !important;
+}
+
+.row-progress td[style*="position: sticky"] {
+    background-color: #fee2e2 !important;
+}
+
+.row-dispatched td[style*="position: sticky"] {
+    background-color: #dcfce7 !important;
+}
+
+.modern-table tr:hover .sticky-column,
+.modern-table tr:hover td[style*="position: sticky"] {
+    filter: brightness(0.96);
+}
+
+/* Checkbox Styling */
+.modern-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #ef4444;
+}
+
+/* Select Styling */
+.modern-select {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: #334155;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.modern-select:focus {
+    border-color: #ef4444;
+    background: white;
+}
+
+/* Modal Improvements */
+.modern-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1.5rem;
+}
+
+.modern-modal-container {
+    background: white;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.modal-footer {
+    padding: 1.25rem 2rem;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+    text-align: right;
+}
+
+.grid-section {
+    margin-bottom: 2.5rem;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    display: block;
+    border-left: 3px solid #ef4444;
+    padding-left: 0.75rem;
+}
+
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.data-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.data-item div {
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-weight: 600;
+}

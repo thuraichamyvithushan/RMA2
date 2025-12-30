@@ -1,0 +1,201 @@
+/* Google Forms Style for RMA Form - Clean & Minimalist */
+
+.public-rma-wrapper {
+    min-height: 100vh;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+}
+
+.form-max-width {
+    width: 100%;
+    max-width: 770px;
+}
+
+/* Card Style */
+.rma-google-card {
+    background: #ffffff;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid #dadce0;
+}
+
+/* Specific Header Card */
+.rma-header-card {
+    border-top: 10px solid #d30000;
+    /* Standard Google Forms Purple */
+}
+
+.rma-header {
+    padding: 22px 24px;
+}
+
+.rma-header h1 {
+    font-size: 32px;
+    font-weight: 400;
+    margin: 0;
+    color: #202124;
+}
+
+.rma-header p {
+    margin: 12px 0 0;
+    color: #202124;
+    font-size: 14px;
+}
+
+/* Wizard Steps - Minimalist */
+.wizard-progress-card {
+    padding: 16px 24px;
+}
+
+.wizard-steps-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.wizard-step-indicator {
+    height: 4px;
+    flex-grow: 1;
+    background: #e8eaed;
+    border-radius: 0;
+    transition: all 0.3s;
+}
+
+.wizard-step-indicator.active {
+    background: #d30000;
+}
+
+.step-label {
+    font-size: 14px;
+    color: #70757a;
+    font-weight: 500;
+}
+
+/* Form Styling */
+.rma-form-section-card {
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #202124;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #dadce0;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+    width: 100%;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-bottom: 2px solid #d30000;
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Navigation Buttons */
+.form-nav-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-prev {
+    background: transparent;
+    color: #d30000;
+}
+
+.btn-prev:hover {
+    background: #f8f9fa;
+}
+
+.btn-next {
+    background: #d30000;
+    color: white;
+}
+
+.btn-next:hover {
+    background: #d30000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Success View */
+.success-msg {
+    margin-top: 24px;
+    font-size: 14px;
+    color: #202124;
+}
+
+.footer-note {
+    margin-top: 24px;
+    color: #70757a;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .form-max-width {
+        max-width: 100%;
+    }
+
+    .rma-header h1 {
+        font-size: 24px;
+    }
+}

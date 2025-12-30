@@ -1,0 +1,206 @@
+.rma-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.table-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.table-header-actions h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+}
+
+.search-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.search-bar input {
+    padding: 10px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    width: 300px;
+}
+
+.search-bar button {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.horizontal-scroll-container {
+    overflow-x: auto;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+}
+
+.rma-data-table {
+    width: 100%;
+    min-width: 1500px;
+    /* High width as requested */
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.rma-data-table th {
+    background: #f8fafc;
+    padding: 15px;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.rma-data-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.rma-data-table tr:hover {
+    background: #fcfcfc;
+}
+
+.bold {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.truncate {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.actions-cell {
+    min-width: 220px;
+}
+
+.status-btns {
+    display: flex;
+    gap: 5px;
+}
+
+.status-btns button {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 4px;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.status-btns button.active {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+}
+
+.no-data,
+.loading-text {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+}
+
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.rma-data-table th {
+    background: #0f172a;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rma-data-table tr:hover {
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.rma-data-table td {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rma-data-table input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--success);
+}
+
+.rma-data-table select {
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-inline-input:hover {
+    border-color: var(--primary) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.table-inline-input:focus {
+    border-color: var(--primary) !important;
+    background: rgba(255, 158, 11, 0.1) !important;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.role-badge.staff {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.staff-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-delete:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
