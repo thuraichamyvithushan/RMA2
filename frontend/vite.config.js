@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://rma-ashen.vercel.app',
+        target: 'http://localhost:5001',
         changeOrigin: true,
       }
     }
