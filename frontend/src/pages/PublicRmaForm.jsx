@@ -85,7 +85,7 @@ const PublicRmaForm = () => {
             setCurrentStep(prev => Math.min(prev + 1, 4));
             setStatus({ ...status, error: null });
         } else {
-            setStatus({ ...status, error: 'Please fill in all required fields before proceeding.' });
+            setStatus({ ...status, error: 'Please fill in all required fields.' });
         }
     };
 
@@ -160,7 +160,6 @@ const PublicRmaForm = () => {
         <div className="public-rma-wrapper">
             <div className="form-max-width">
 
-                {/* Header Card */}
                 <div className="rma-google-card rma-header-card">
                     <img src="/assets/topbanner.png" alt="Banner" style={{ width: '20%', height: 'auto', display: 'block' }} />
                     <div className="rma-header">
@@ -169,7 +168,6 @@ const PublicRmaForm = () => {
                     </div>
                 </div>
 
-                {/* Progress Card */}
                 <div className="rma-google-card wizard-progress-card">
                     <div className="wizard-steps-container">
                         {STEPS.map((step) => (
@@ -182,7 +180,6 @@ const PublicRmaForm = () => {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    {/* Step 1: Customer Information */}
                     {currentStep === 1 && (
                         <div className="rma-google-card rma-form-section-card">
                             <h3 className="section-title">Customer Information</h3>
@@ -207,7 +204,6 @@ const PublicRmaForm = () => {
                         </div>
                     )}
 
-                    {/* Step 2: Product Details */}
                     {currentStep === 2 && (
                         <div className="rma-google-card rma-form-section-card">
                             <h3 className="section-title">Product Details</h3>
@@ -247,7 +243,6 @@ const PublicRmaForm = () => {
                         </div>
                     )}
 
-                    {/* Step 3: Shipping Address */}
                     {currentStep === 3 && (
                         <div className="rma-google-card rma-form-section-card">
                             <h3 className="section-title">Shipping Address</h3>
@@ -275,7 +270,6 @@ const PublicRmaForm = () => {
                         </div>
                     )}
 
-                    {/* Step 4: Package Information */}
                     {currentStep === 4 && (
                         <div className="rma-google-card rma-form-section-card">
                             <h3 className="section-title">Package Information</h3>
@@ -304,14 +298,12 @@ const PublicRmaForm = () => {
                         </div>
                     )}
 
-                    {/* Error Message */}
                     {status.error && (
                         <div className="rma-google-card" style={{ padding: '16px', color: '#d93025', fontSize: '14px', borderLeft: '4px solid #d93025' }}>
                             {status.error}
                         </div>
                     )}
 
-                    {/* Navigation */}
                     <div className="form-nav-container">
                         {currentStep > 1 ? (
                             <button type="button" onClick={handlePrevious} className="btn btn-prev">

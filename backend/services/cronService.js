@@ -4,10 +4,10 @@ const nodemailer = require('nodemailer');
 const { createObjectCsvStringifier } = require('csv-writer');
 
 const SLA_DAYS = {
-  step1: 2, // Created -> Received
-  step2: 4, // Received -> Investigation
-  step3: 5, // Investigation -> In Progress
-  step4: 6  // In Progress -> Dispatched
+  step1: 2,
+  step2: 4,
+  step3: 5,
+  step4: 6
 };
 
 const _ageDays = (date) => (Date.now() - new Date(date).getTime()) / 86400000;
@@ -34,8 +34,6 @@ const transporter = nodemailer.createTransport({
 });
 
 const checkOverdues = async () => {
-  console.log('Running Daily Cron: Check Overdues');
-
   try {
     if (!db) return;
 
@@ -92,7 +90,6 @@ const checkOverdues = async () => {
             age: Math.floor(ageFromBaseline)
           });
 
-          // Update adminNotified field
           const newNote = `${notifiedStr ? notifiedStr + '; ' : ''}Overdue ${label} on ${nowStr}`;
           await db.collection('rmas').doc(rma.id).update({
             adminNotified: newNote,
@@ -102,12 +99,8 @@ const checkOverdues = async () => {
       }
     }
 
-    if (overdueSelection.length === 0) {
-      console.log('No overdue items found.');
-      return;
-    }
+    if (overdueSelection.length === 0) return;
 
-    // Generate CSV
     const csvStringifier = createObjectCsvStringifier({
       header: [
         { id: 'rmaNumber', title: 'RMA Number' },
@@ -134,7 +127,6 @@ const checkOverdues = async () => {
 
     const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(csvRecords);
 
-    // Generate HTML Table
     const tableRows = overdueSelection.map(o => `
       <tr>
         <td style="padding:6px;border:1px solid #ddd;">${o.rma.rmaNumber}</td>
@@ -192,7 +184,6 @@ const checkOverdues = async () => {
   </div>
 `;
 
-    // Send Email
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
@@ -204,23 +195,14 @@ const checkOverdues = async () => {
       }]
     });
 
-    console.log('Overdue report sent.');
-
   } catch (err) {
     console.error('Cron job failed:', err);
   }
 };
 
 const initCron = () => {
-  // Run daily at 8:00 AM
   cron.schedule('0 8 * * *', checkOverdues);
-  console.log('✓ Cron Job Scheduled: Daily at 08:00 AM');
-  console.log('  Time Limits (SLA):');
-  console.log(`  - RMA Created → Product Received: ${SLA_DAYS.step1} days`);
-  console.log(`  - Product Received → Investigation: ${SLA_DAYS.step2} days`);
-  console.log(`  - Investigation → In Progress: ${SLA_DAYS.step3} days`);
-  console.log(`  - In Progress → Dispatched: ${SLA_DAYS.step4} days`);
-  console.log('  Admin will receive email alerts for overdue RMAs');
+  console.log('✓ Cron Job Scheduled');
 };
 
 module.exports = { initCron, checkOverdues };

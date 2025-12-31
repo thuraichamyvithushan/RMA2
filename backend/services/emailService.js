@@ -139,7 +139,6 @@ const sendEmail = async (to, step, data) => {
     return true;
   }
 
-  // Use RMA number for submission/admin emails, serial number for status updates
   const subjectIdentifier = (step === 'rmaSubmitted' || step === 'adminNotification')
     ? data.rmaNumber
     : data.productSerialNo;
@@ -157,7 +156,7 @@ const sendEmail = async (to, step, data) => {
     return true;
   } catch (error) {
     console.error('Email send failed:', error.message);
-    throw error; // Re-throw to see the actual error
+    throw error;
   }
 };
 

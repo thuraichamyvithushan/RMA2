@@ -39,7 +39,6 @@ exports.syncUser = async (req, res) => {
         const { uid, email, name, picture } = req.user;
         const userRef = db.collection('users').doc(uid);
 
-        // Determine role: if first user, make admin, else staff
         const snapshot = await db.collection('users').get();
         let role = 'staff';
         if (snapshot.empty) {
@@ -102,7 +101,6 @@ exports.updateUserRole = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     const { uid } = req.params;
     try {
-        // Full deletion from both Firestore and Firebase Auth
         await auth.deleteUser(uid);
         await db.collection('users').doc(uid).delete();
         res.json({ message: 'User deleted' });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import '../styles/main.css';
@@ -129,29 +129,25 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteRMA = async (id, rmaNumber) => {
-        if (!confirm(`Are you sure you want to PERMANENTLY delete RMA ${rmaNumber}? This action cannot be undone.`)) return;
+        if (!confirm(`Are you sure you want to PERMANENTLY delete RMA ${rmaNumber}?`)) return;
 
         try {
             const token = await user.getIdToken();
-            console.log(`📡 Sending delete request for ${id} to ${API_BASE_URL}/api/admin/rmas/${id}`);
             const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
+                }
             });
 
             if (res.ok) {
                 setRmas(rmas.filter(r => r.id !== id));
             } else {
                 const data = await res.json();
-                console.error('❌ Delete failed:', data);
                 alert(`Delete failed: ${data.error || 'Unknown error'}`);
             }
         } catch (err) {
-            console.error('❌ Fetch error:', err);
             alert(`Network error: ${err.message}`);
         }
     };
@@ -225,14 +221,6 @@ export default function AdminDashboard() {
             />
         );
     };
-
-    const RedHeader = ({ children }) => (
-        <th style={{ padding: '1rem', background: '#334155', color: 'white', borderRight: '1px solid #475569', minWidth: '180px' }}>{children}</th>
-    );
-
-    const YellowHeader = ({ children }) => (
-        <th style={{ padding: '1rem', background: '#334155', color: 'white', borderRight: '1px solid #475569', minWidth: '180px' }}>{children}</th>
-    );
 
     const DetailsModal = ({ rma, onClose }) => {
         if (!rma) return null;
@@ -371,7 +359,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing with spreadsheet data...</td></tr>
+                                <tr><td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing data...</td></tr>
                             ) : rmas.map(rma => {
                                 let rowClass = "";
                                 if (rma.dispatched) rowClass = "row-dispatched";

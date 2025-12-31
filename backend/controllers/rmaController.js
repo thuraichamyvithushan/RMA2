@@ -1,7 +1,6 @@
 const { db } = require('../config/firebase');
 const { sendEmail } = require('../services/emailService');
 
-// Create RMA
 exports.createRMA = async (req, res) => {
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
@@ -14,7 +13,6 @@ exports.createRMA = async (req, res) => {
             rmaNumber,
             createdAt: new Date(),
             updatedAt: new Date(),
-            // Steps
             productReceived: false,
             investigationUnderway: false,
             inProgress: false,
@@ -23,7 +21,6 @@ exports.createRMA = async (req, res) => {
 
         const docRef = await db.collection('rmas').add(rmaData);
 
-        // Send confirmation email to customer
         try {
             const confirmationEmailData = {
                 sender: rmaData.name,
@@ -39,7 +36,6 @@ exports.createRMA = async (req, res) => {
             console.error('✗ Failed to send confirmation email to customer:', emailError.message);
         }
 
-        // Send notification email to admin
         try {
             const adminEmail = process.env.ADMIN_EMAIL || 'thuraichamyvithushan19@gmail.com';
             console.log(`📧 Attempting to send admin notification to: ${adminEmail}...`);
@@ -66,7 +62,6 @@ exports.createRMA = async (req, res) => {
     }
 };
 
-// Get All RMA
 exports.getRMAs = async (req, res) => {
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
@@ -95,7 +90,6 @@ exports.getRMAs = async (req, res) => {
     }
 };
 
-// Update Status
 exports.updateRMAStatus = async (req, res) => {
     const { id } = req.params;
     const { step, value } = req.body;
@@ -145,7 +139,6 @@ exports.updateRMAStatus = async (req, res) => {
                     }
                 } catch (emailError) {
                     console.error(`✗ Email error for ${rma.email}:`, emailError.message);
-                    // Continue with status update even if email fails
                 }
             } else {
                 console.log(`ℹ Email already sent for ${step} at ${rma[timestampField]}`);

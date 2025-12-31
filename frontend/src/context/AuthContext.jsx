@@ -16,13 +16,12 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
-    const [loading, setLoading] = useState(true); // Only for initial load
+    const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
 
     useEffect(() => {
         if (!auth) {
             setLoading(false);
-            console.error("Firebase Auth not initialized. Check your .env config.");
             return;
         }
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -40,12 +39,10 @@ export const AuthProvider = ({ children }) => {
                         setRole(data.role);
                         setUser(firebaseUser);
                     } else {
-                        console.error("Sync failed");
                         setUser(firebaseUser);
                         setRole('staff');
                     }
                 } catch (err) {
-                    console.error("Auth sync failed:", err);
                     setUser(firebaseUser);
                     setRole('staff');
                 } finally {
