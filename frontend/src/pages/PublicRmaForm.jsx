@@ -189,7 +189,7 @@ const PublicRmaForm = () => {
                                     <input type="email" name="email" value={formData.email} onChange={handleChange} required />
                                 </div>
                                 <div className="form-group">
-                                    <label>Name / Company Name*</label>
+                                    <label>FullName*</label>
                                     <input type="text" name="name" value={formData.name} onChange={handleChange} required />
                                 </div>
                                 <div className="form-group">
@@ -197,8 +197,8 @@ const PublicRmaForm = () => {
                                     <input type="tel" name="contactPhone" value={formData.contactPhone} onChange={handleChange} required />
                                 </div>
                                 <div className="form-group">
-                                    <label>Company Name (Optional)</label>
-                                    <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} />
+                                    <label>Company Name*</label>
+                                    <input type="text" name="companyName" value={formData.companyName} onChange={handleChange}  required/>
                                 </div>
                             </div>
                         </div>
