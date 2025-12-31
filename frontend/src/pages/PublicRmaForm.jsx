@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './PublicRmaForm.new.css';
+import { API_BASE_URL } from '../config';
 
 const MODEL_OPTIONS = [
     "STELLAR 3.0 - SX60L 3.0", "STELLAR 3.0 - SQ50L 3.0", "STELLAR 3.0- SQ35L 3.0", "STELLAR 3.0- SH50L 3.0",
@@ -110,7 +111,7 @@ const PublicRmaForm = () => {
         delete finalData.otherModelName;
 
         try {
-            const response = await fetch('/api/rma', {
+            const response = await fetch(`${API_BASE_URL}/api/rma`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

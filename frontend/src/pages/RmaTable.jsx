@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import './RmaTable.css';
 
 const RmaTable = () => {
@@ -16,7 +17,7 @@ const RmaTable = () => {
         setLoading(true);
         try {
             const token = await user.getIdToken();
-            const response = await fetch(`/api/admin/rmas?search=${search}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/rmas?search=${search}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -36,7 +37,7 @@ const RmaTable = () => {
     const updateStatus = async (id, step, value) => {
         try {
             const token = await user.getIdToken();
-            const response = await fetch(`/api/admin/rmas/${id}/status`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

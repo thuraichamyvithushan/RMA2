@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth as firebaseAuth } from '../firebase';
 import './AuthPages.css';
@@ -23,7 +24,7 @@ const Register = () => {
 
             // Sync with backend (optional but good practice)
             const token = await userCredential.user.getIdToken();
-            await fetch('/api/auth/sync', {
+            await fetch(`${API_BASE_URL}/api/auth/sync`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

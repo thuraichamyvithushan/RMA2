@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import '../styles/main.css';
+import { API_BASE_URL } from '../config';
 
 const MODELS = [
     "STELLAR 3.0 - SX60L 3.0",
@@ -105,7 +105,7 @@ export default function RMAForm() {
         }
 
         try {
-            const res = await fetch('http://127.0.0.1:5000/api/rma', {
+            const res = await fetch(`${API_BASE_URL}/api/rma`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

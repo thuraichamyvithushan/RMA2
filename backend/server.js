@@ -22,7 +22,13 @@ const authController = require('./controllers/authController');
 const { initCron, checkOverdues } = require('./services/cronService');
 
 // Routes
+app.get('/', (req, res) => res.json({ message: "Welcome to the RMA Backend API. Use /api/health to check status." }));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Descriptive routes for browser testing
+app.get('/api/rma', (req, res) => res.status(405).json({ error: "Method Not Allowed. This endpoint only accepts POST requests for RMA creation." }));
+app.get('/api/auth/login', (req, res) => res.status(405).json({ error: "Method Not Allowed. This endpoint only accepts POST requests for Login." }));
+app.get('/api/auth/register', (req, res) => res.status(405).json({ error: "Method Not Allowed. This endpoint only accepts POST requests for Registration." }));
 
 // Auth - These will now mostly be handled by Firebase client-side, 
 // but we keep some endpoints for sync if needed.

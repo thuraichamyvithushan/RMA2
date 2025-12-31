@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import '../styles/main.css';
 import './AdminDashboard.css';
 
@@ -12,7 +13,7 @@ const REPAIR_STATUS_OPTIONS = [
 ];
 
 const SPARE_PARTS_UPDATE_OPTIONS = [
-    "N/A", "Awaiting Quote", "Spare Parts Ordered", "Spare Parts Received","Part in Transit", "Part Installed"
+    "N/A", "Awaiting Quote", "Spare Parts Ordered", "Spare Parts Received", "Part in Transit", "Part Installed"
 ];
 
 const STATE_OPTIONS = [
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const token = await user.getIdToken();
-            const res = await fetch(`/api/admin/rmas?page=${page}&search=${search}`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
 
         try {
             const token = await user.getIdToken();
-            const res = await fetch(`/api/admin/rmas/${id}/status`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ step, value: true })
@@ -98,7 +99,7 @@ export default function AdminDashboard() {
     const handleInlineUpdate = async (id, field, value) => {
         try {
             const token = await user.getIdToken();
-            const res = await fetch(`/api/admin/rmas/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ [field]: value })
@@ -132,8 +133,8 @@ export default function AdminDashboard() {
 
         try {
             const token = await user.getIdToken();
-            console.log(`📡 Sending delete request for ${id} to /api/admin/rmas/${id}`);
-            const res = await fetch(`/api/admin/rmas/${id}`, {
+            console.log(`📡 Sending delete request for ${id} to ${API_BASE_URL}/api/admin/rmas/${id}`);
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

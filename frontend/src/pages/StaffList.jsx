@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import DashboardLayout from '../components/DashboardLayout';
 import './StaffList.css';
 
@@ -12,7 +13,7 @@ const StaffList = () => {
         setLoading(true);
         try {
             const token = await user.getIdToken();
-            const response = await fetch('/api/admin/staff', {
+            const response = await fetch(`${API_BASE_URL}/api/admin/staff`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -32,7 +33,7 @@ const StaffList = () => {
         if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
         try {
             const token = await user.getIdToken();
-            const response = await fetch(`/api/admin/users/${uid}/role`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${uid}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ const StaffList = () => {
         if (!confirm("Are you sure you want to delete this staff member? This will remove their access permanently.")) return;
         try {
             const token = await user.getIdToken();
-            const response = await fetch(`/api/admin/users/${uid}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${uid}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

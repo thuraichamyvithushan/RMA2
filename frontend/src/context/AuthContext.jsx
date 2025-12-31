@@ -7,6 +7,7 @@ import {
     sendPasswordResetEmail,
     updateProfile
 } from 'firebase/auth';
+import { API_BASE_URL } from '../config';
 
 const AuthContext = createContext();
 
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
                 setSyncing(true);
                 try {
                     const token = await firebaseUser.getIdToken();
-                    const response = await fetch('/api/auth/sync', {
+                    const response = await fetch(`${API_BASE_URL}/api/auth/sync`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
