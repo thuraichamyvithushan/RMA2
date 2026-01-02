@@ -33,7 +33,7 @@ const getHtmlBody = (step, data) => {
 
   const signature = `
     <p>Best regards,<br>
-    <span style="color: red; font-weight: bold;">Admin</span> <span style="color: black; font-weight: bold;">Staff</span><br>
+    <span style="color: red; font-weight: bold;">Admin</span> 
     <span style="color: gray;">RMA Centre<br>Australia</span></p>
     <img src="${IMAGES.LOGO}" alt="Logo" style="height:60px;width:auto;display:block;margin-top:10px;">
     <p style="color: gray; font-size: small; font-style: italic;">The content of this e-mail is confidential ...</p>
