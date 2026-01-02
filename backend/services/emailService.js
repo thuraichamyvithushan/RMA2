@@ -143,7 +143,7 @@ const getHtmlBody = (step, data) => {
         <p>With this new role, you now have access to the dashboard and other administrative features corresponding to your permissions.</p>
         <p>Please log in to the portal to explore your updated access:</p>
         <div style="margin: 30px 0;">
-          <a href="https://rma.huntsmanoptics.com/login" style="background-color: #f59e0b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Portal</a>
+          <a href="https://rma-2.vercel.app/login" style="background-color: #f59e0b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Portal</a>
         </div>
         <p>If you have any questions regarding your new permissions, please contact the System Administrator.</p>
         ${signature}
