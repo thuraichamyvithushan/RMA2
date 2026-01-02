@@ -22,7 +22,6 @@ const getSubject = (step, serial) => {
     case 'investigationUnderway': return `Investigation Underway – Serial Number ${serial}`;
     case 'inProgress': return `Update on Your Product – Serial Number ${serial}`;
     case 'dispatched': return `Repair and Assessment of Warranty Completed – Serial Number ${serial}`;
-    case 'roleUpdated': return `Portal Access Updated – Your New Role: ${serial}`;
     default: return `RMA Update – Serial Number ${serial}`;
   }
 };
@@ -128,26 +127,6 @@ const getHtmlBody = (step, data) => {
         <li><strong>Tracking Number:</strong> ${_esc(trackingNumber)}</li>
       </ul>
       ${signature}
-    `;
-  }
-
-  if (step === 'roleUpdated') {
-    const roleCapitalized = data.role.charAt(0).toUpperCase() + data.role.slice(1);
-    return `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <p>Dear ${_esc(sender)},</p>
-        <p>We are pleased to inform you that your access level for the <strong>RMA Portal</strong> has been updated.</p>
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0; font-size: 1.1rem;">Your new role: <strong style="color: #f59e0b;">${_esc(roleCapitalized)}</strong></p>
-        </div>
-        <p>With this new role, you now have access to the dashboard and other administrative features corresponding to your permissions.</p>
-        <p>Please log in to the portal to explore your updated access:</p>
-        <div style="margin: 30px 0;">
-          <a href="https://rma.huntsmanoptics.com/login" style="background-color: #f59e0b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Portal</a>
-        </div>
-        <p>If you have any questions regarding your new permissions, please contact the System Administrator.</p>
-        ${signature}
-      </div>
     `;
   }
 
