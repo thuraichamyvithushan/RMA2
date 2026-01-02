@@ -39,7 +39,8 @@ const Register = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>Create Staff Account</h2>
+               <h2>Sign Up  </h2>
+                <p>Hello! Let's join with us.</p>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Full Name</label>
