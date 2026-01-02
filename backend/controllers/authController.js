@@ -34,6 +34,20 @@ exports.adminOnly = async (req, res, next) => {
     }
 };
 
+exports.adminOrRepresentative = async (req, res, next) => {
+    try {
+        const userRef = db.collection('users').doc(req.user.uid);
+        const doc = await userRef.get();
+        if (doc.exists && ['admin', 'representative'].includes(doc.data().role)) {
+            next();
+        } else {
+            res.status(403).json({ message: 'Require Admin or Representative Role' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 exports.syncUser = async (req, res) => {
     try {
         const { uid, email, name, picture } = req.user;
@@ -88,7 +102,7 @@ exports.updateUserRole = async (req, res) => {
     const { uid } = req.params;
     const { role } = req.body;
     try {
-        if (!['admin', 'staff'].includes(role)) {
+        if (!['admin', 'staff', 'representative'].includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
         await db.collection('users').doc(uid).update({ role });

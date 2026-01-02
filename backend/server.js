@@ -36,7 +36,7 @@ app.post('/api/auth/sync', authController.protect, authController.syncUser);
 app.post('/api/rma', rmaController.createRMA);
 
 // Admin (Protected)
-app.get('/api/admin/rmas', authController.protect, authController.adminOnly, rmaController.getRMAs);
+app.get('/api/admin/rmas', authController.protect, authController.adminOrRepresentative, rmaController.getRMAs);
 app.post('/api/admin/check-overdues', authController.protect, authController.adminOnly, async (req, res) => {
     try {
         await checkOverdues();
@@ -48,7 +48,7 @@ app.post('/api/admin/check-overdues', authController.protect, authController.adm
 app.put('/api/admin/rmas/:id/status', authController.protect, authController.adminOnly, rmaController.updateRMAStatus);
 app.put('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.updateRMA);
 app.delete('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.deleteRMA);
-app.get('/api/admin/staff', authController.protect, authController.adminOnly, authController.getStaff);
+app.get('/api/admin/staff', authController.protect, authController.adminOrRepresentative, authController.getStaff);
 app.put('/api/admin/users/:uid/role', authController.protect, authController.adminOnly, authController.updateUserRole);
 app.delete('/api/admin/users/:uid', authController.protect, authController.adminOnly, authController.deleteUser);
 

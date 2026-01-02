@@ -7,7 +7,8 @@ import './StaffList.css';
 const StaffList = () => {
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth();
+    const { user, role: currentUserRole } = useAuth();
+    const isRepresentative = currentUserRole === 'representative';
 
     const fetchStaff = async () => {
         setLoading(true);
@@ -103,7 +104,7 @@ const StaffList = () => {
                                         <td className="staff-email">{member.email}</td>
                                         <td>
                                             <span className={`role-badge ${member.role}`}>
-                                                {member.role === 'admin' ? 'Admin' : 'Staff'}
+                                                {member.role === 'admin' ? 'Admin' : member.role === 'representative' ? 'Representative' : 'Staff'}
                                             </span>
                                         </td>
                                         <td className="last-signin">
@@ -111,18 +112,25 @@ const StaffList = () => {
                                         </td>
                                         <td>
                                             <div className="staff-actions">
-                                                <button
-                                                    className="action-btn promote"
-                                                    onClick={() => handleUpdateRole(member.id, member.role === 'admin' ? 'staff' : 'admin')}
-                                                    title={member.role === 'admin' ? 'Demote to Staff' : 'Promote to Admin'}
-                                                >
-                                                    {member.role === 'admin' ? '👤' : '🛡️'}
-                                                </button>
+                                                {currentUserRole === 'admin' ? (
+                                                    <select
+                                                        className="role-select-inline"
+                                                        value={member.role}
+                                                        onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                                                        disabled={member.email === user.email}
+                                                    >
+                                                        <option value="staff">Staff</option>
+                                                        <option value="representative">Representative</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                ) : (
+                                                    <span className="role-text-locked">Locked</span>
+                                                )}
                                                 <button
                                                     className="action-btn delete"
                                                     onClick={() => handleDeleteStaff(member.id)}
                                                     title="Delete User"
-                                                    disabled={member.email === user.email}
+                                                    disabled={member.email === user.email || isRepresentative}
                                                 >
                                                     🗑️
                                                 </button>

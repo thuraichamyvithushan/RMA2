@@ -28,7 +28,8 @@ export default function AdminDashboard() {
     const [page, setPage] = useState(1);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [selectedRMA, setSelectedRMA] = useState(null);
-    const { user } = useAuth();
+    const { user, role } = useAuth();
+    const isRepresentative = role === 'representative';
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -203,6 +204,7 @@ export default function AdminDashboard() {
         const onBlur = async () => {
             let valToSave = type === 'date' ? localValue : localValue.toString().trim();
             if (valToSave === (value || '')) return;
+            if (isRepresentative) return;
             setIsSaving(true);
             const success = await handleInlineUpdate(rmaId, field, valToSave);
             setIsSaving(false);
@@ -215,7 +217,7 @@ export default function AdminDashboard() {
                 value={type === 'date' ? safeFormatForInput(localValue) : localValue}
                 onChange={e => setLocalValue(e.target.value)}
                 onBlur={onBlur}
-                disabled={isSaving}
+                disabled={isSaving || isRepresentative}
                 className="modern-inline-input"
                 style={{ width }}
             />
@@ -386,6 +388,7 @@ export default function AdminDashboard() {
                                             <select
                                                 value={rma.state || ''}
                                                 onChange={e => handleInlineUpdate(rma.id, 'state', e.target.value)}
+                                                disabled={isRepresentative}
                                                 className="modern-select"
                                                 style={{ width: '120px' }}
                                             >
@@ -395,20 +398,32 @@ export default function AdminDashboard() {
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="postCode" value={rma.postCode} width="90px" /></td>
                                         <td>
-                                            <select value={rma.assignedTo || ''} onChange={e => handleInlineUpdate(rma.id, 'assignedTo', e.target.value)} className="modern-select" style={{ width: '150px' }}>
+                                            <select
+                                                value={rma.assignedTo || ''}
+                                                onChange={e => handleInlineUpdate(rma.id, 'assignedTo', e.target.value)}
+                                                disabled={isRepresentative}
+                                                className="modern-select"
+                                                style={{ width: '150px' }}
+                                            >
                                                 <option value="">None</option>
                                                 {ASSIGNED_TO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                                             </select>
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.productReceived} onChange={() => handleUpdateStatus(rma.id, 'productReceived')} disabled={!!rma.productReceived} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.productReceived} onChange={() => handleUpdateStatus(rma.id, 'productReceived')} disabled={!!rma.productReceived || isRepresentative} className="modern-checkbox" />
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="faultDescription" value={rma.faultDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || !rma.productReceived} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || !rma.productReceived || isRepresentative} className="modern-checkbox" />
                                         </td>
                                         <td>
-                                            <select value={rma.huntsmanRepairStatus || ''} onChange={e => handleInlineUpdate(rma.id, 'huntsmanRepairStatus', e.target.value)} className="modern-select" style={{ width: '160px' }}>
+                                            <select
+                                                value={rma.huntsmanRepairStatus || ''}
+                                                onChange={e => handleInlineUpdate(rma.id, 'huntsmanRepairStatus', e.target.value)}
+                                                disabled={isRepresentative}
+                                                className="modern-select"
+                                                style={{ width: '160px' }}
+                                            >
                                                 <option value="">None</option>
                                                 {REPAIR_STATUS_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                                             </select>
@@ -416,12 +431,13 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="serialNumber" value={rma.serialNumber} width="140px" /></td>
                                         <td><TableInput rmaId={rma.id} field="repairDescription" value={rma.repairDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || !rma.investigationUnderway} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || !rma.investigationUnderway || isRepresentative} className="modern-checkbox" />
                                         </td>
                                         <td>
                                             <select
                                                 value={rma.sparePartsUpdate || ''}
                                                 onChange={e => handleSparePartsChange(rma.id, e.target.value)}
+                                                disabled={isRepresentative}
                                                 className="modern-select"
                                                 style={{ width: '140px' }}
                                             >
@@ -431,7 +447,7 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="completeDateOfReturn" value={rma.completeDateOfReturn} type="date" width="130px" /></td>
                                         <td><TableInput rmaId={rma.id} field="trackingNumber" value={rma.trackingNumber} width="150px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || !rma.inProgress} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || !rma.inProgress || isRepresentative} className="modern-checkbox" />
                                         </td>
                                         <td>{formatDate(rma.productReceivedEmailAt)}</td>
                                         <td><TableInput rmaId={rma.id} field="startedServiceDate" value={rma.startedServiceDate} type="date" width="130px" /></td>
@@ -440,7 +456,13 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="sparePartOrdered" value={rma.sparePartOrdered} type="date" width="130px" /></td>
                                         <td><TableInput rmaId={rma.id} field="sparePartReceived" value={rma.sparePartReceived} type="date" width="130px" /></td>
                                         <td>
-                                            <select value={rma.requireLabel || 'No'} onChange={e => handleInlineUpdate(rma.id, 'requireLabel', e.target.value)} className="modern-select" style={{ width: '80px' }}>
+                                            <select
+                                                value={rma.requireLabel || 'No'}
+                                                onChange={e => handleInlineUpdate(rma.id, 'requireLabel', e.target.value)}
+                                                disabled={isRepresentative}
+                                                className="modern-select"
+                                                style={{ width: '80px' }}
+                                            >
                                                 <option value="No">No</option><option value="Yes">Yes</option>
                                             </select>
                                         </td>
@@ -452,7 +474,9 @@ export default function AdminDashboard() {
                                         <td style={{ position: 'sticky', right: 0, background: '#ffffff', boxShadow: '-2px 0 5px rgba(0,0,0,0.02)' }}>
                                             <div className="action-group">
                                                 <button onClick={() => setSelectedRMA(rma)} className="btn-action btn-view">View</button>
-                                                <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove">Remove</button>
+                                                {!isRepresentative && (
+                                                    <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove">Remove</button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
