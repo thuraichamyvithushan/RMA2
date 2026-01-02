@@ -24,6 +24,9 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) return <Navigate to="/login" />;
 
+  // staff role should not access dashboard areas
+  if (role === 'staff') return <Navigate to="/" />;
+
   // Allow Admin and Representative
   if (role !== 'admin' && role !== 'representative') return <Navigate to="/login" />;
 

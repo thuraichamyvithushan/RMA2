@@ -16,7 +16,11 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            await login(email, password);
+            const userCredential = await login(email, password);
+            // After login, we need to get the role to decide where to navigate
+            // However, the role syncing happens in AuthContext
+            // For now, let's navigate to dashboard and let the ProtectedRoute handle it
+            // or we could fetch the role here if we wanted to be more precise
             navigate('/dashboard');
         } catch (err) {
             console.error("Login component error:", err);
