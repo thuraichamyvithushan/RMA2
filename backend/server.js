@@ -8,28 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 
-const allowedOrigins = [
-    'https://rma-2.vercel.app',
-    'https://rma-2-dllw.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-];
-
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-app.options('*', cors());
-
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -72,8 +51,7 @@ app.get('/api/admin/staff', authController.protect, authController.adminOrRepres
 app.put('/api/admin/users/:uid/role', authController.protect, authController.adminOnly, authController.updateUserRole);
 app.delete('/api/admin/users/:uid', authController.protect, authController.adminOnly, authController.deleteUser);
 
-// No cron in Vercel - use /api/admin/check-overdues via external trigger
-// initCron();
+initCron();
 
 app.use((req, res) => {
     res.status(404).json({ error: `Route ${req.method} ${req.url} not found on this server.` });
