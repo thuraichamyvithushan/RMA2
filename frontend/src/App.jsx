@@ -24,8 +24,8 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) return <Navigate to="/login" />;
 
-  // Strict Admin Only
-  if (role !== 'admin') return <Navigate to="/login" />;
+  // Allow Admin and Representative
+  if (role !== 'admin' && role !== 'representative') return <Navigate to="/login" />;
 
   return children;
 };
