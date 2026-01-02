@@ -1,6 +1,4 @@
-const admin = require('../config/firebase');
-const auth = admin.auth();
-const db = admin.firestore();
+const { auth, db } = require('../config/firebase');
 const { sendEmail } = require('../services/emailService');
 
 exports.protect = async (req, res, next) => {
