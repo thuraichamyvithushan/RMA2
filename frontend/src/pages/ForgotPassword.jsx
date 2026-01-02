@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
 const ForgotPassword = () => {
-    const [email, setEmail] = useState('');
+    const { user, resetPassword } = useAuth();
+    const [email, setEmail] = useState(user?.email || '');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { resetPassword } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user?.email) {
+            setEmail(user.email);
+        }
+    }, [user]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,7 +26,7 @@ const ForgotPassword = () => {
             await resetPassword(email);
             setMessage('Check your inbox for further instructions');
         } catch (err) {
-            setError('Failed to reset password');
+            setError(err.message || 'Failed to reset password');
         } finally {
             setLoading(false);
         }
@@ -39,15 +46,27 @@ const ForgotPassword = () => {
                             required
                             placeholder="Enter your registered email"
                             autoComplete="email"
+                            disabled={!!user}
                         />
                     </div>
                     {error && <p className="auth-error">{error}</p>}
                     {message && <p className="auth-success">{message}</p>}
                     <button type="submit" className="auth-btn" disabled={loading}>
-                        {loading ? 'Processing...' : 'Reset Password'}
+                        {loading ? 'Processing...' : 'Send Reset Email'}
                     </button>
                     <div className="auth-links">
-                        <Link to="/login">Back to Login</Link>
+                        {user ? (
+                            <button
+                                type="button"
+                                className="link-btn"
+                                onClick={() => navigate(-1)}
+                                style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                            >
+                                Go Back
+                            </button>
+                        ) : (
+                            <Link to="/login">Back to Login</Link>
+                        )}
                     </div>
                 </form>
             </div>
