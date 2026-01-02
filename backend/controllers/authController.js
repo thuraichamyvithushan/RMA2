@@ -1,4 +1,5 @@
 const { auth, db } = require('../config/firebase');
+const { sendEmail } = require('../services/emailService');
 
 exports.protect = async (req, res, next) => {
     let token;
@@ -105,8 +106,32 @@ exports.updateUserRole = async (req, res) => {
         if (!['admin', 'staff', 'representative'].includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
-        await db.collection('users').doc(uid).update({ role });
-        res.json({ message: 'Role updated' });
+
+        const userRef = db.collection('users').doc(uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userData = doc.data();
+        const oldRole = userData.role;
+
+        await userRef.update({ role });
+
+        // Send email only if the role has actually changed and it's a "promotion" (or just an update to admin/rep)
+        if (oldRole !== role && (role === 'admin' || role === 'representative')) {
+            try {
+                await sendEmail(userData.email, 'roleUpdated', {
+                    sender: userData.name || userData.email,
+                    role: role
+                });
+            } catch (emailErr) {
+                console.error('Failed to send role update email:', emailErr);
+                // Don't fail the request if email fails
+            }
+        }
+
+        res.json({ message: `Role updated to ${role}` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

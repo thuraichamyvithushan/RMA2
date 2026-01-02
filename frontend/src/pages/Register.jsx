@@ -40,7 +40,7 @@ const Register = () => {
         <div className="auth-container">
             <div className="auth-card">
                <h2>Sign Up  </h2>
-                <p>Hello! Let's join with us.</p>
+                <h5>Hello! Let's join with us.</h5>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Full Name</label>
