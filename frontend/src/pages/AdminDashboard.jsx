@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import '../styles/main.css';
@@ -22,7 +22,9 @@ const STATE_OPTIONS = [
 ];
 
 export default function AdminDashboard() {
-    const [rmas, setRmas] = useState([]);
+    const [activeRmas, setActiveRmas] = useState([]);
+    const [archivedRmas, setArchivedRmas] = useState([]);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' or 'archived'
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -30,6 +32,104 @@ export default function AdminDashboard() {
     const [selectedRMA, setSelectedRMA] = useState(null);
     const { user, role } = useAuth();
     const isRepresentative = role === 'representative';
+    const fileInputRef = useRef(null);
+
+    const handleExport = async () => {
+        try {
+            const token = await user.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/admin/rmas/export`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Export response error:', response.status, errorData);
+                throw new Error(errorData.error || errorData.message || `Server responded with ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rmas_export_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export error details:', err);
+            alert('Export failed: ' + err.message);
+        }
+    };
+
+    const handleImportClick = () => {
+        if (fileInputRef.current) fileInputRef.current.click();
+    };
+
+    const handleImport = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        setLoading(true);
+        try {
+            const token = await user.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/admin/rmas/import`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Import failed');
+
+            alert(result.message);
+            fetchRMAs(); // Refresh data
+        } catch (err) {
+            console.error('Import error:', err);
+            alert('Import failed: ' + err.message);
+        } finally {
+            setLoading(false);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        if (isRepresentative) return;
+
+        const tabName = activeTab === 'active' ? 'ACTIVE' : 'ARCHIVED';
+        const msg = `⚠️ WARNING: This will PERMANENTLY delete ALL ${tabName} records! \n\nAre you sure you want to proceed?`;
+
+        if (!window.confirm(msg)) return;
+
+        const confirmText = window.prompt(`Type "DELETE" to confirm the mass deletion of all ${tabName} records:`);
+        if (confirmText !== 'DELETE') {
+            alert('Deletion cancelled. Confirmation text did not match.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const token = await user.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/admin/rmas/all?archived=${activeTab === 'archived'}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Bulk delete failed');
+
+            alert(result.message);
+            fetchRMAs();
+        } catch (err) {
+            console.error('Bulk delete error:', err);
+            alert('Error: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -39,14 +139,34 @@ export default function AdminDashboard() {
 
     const fetchRMAs = async () => {
         if (!user) return;
+
+        // Representatives should only see records when searching
+        if (isRepresentative && !search.trim()) {
+            setActiveRmas([]);
+            setArchivedRmas([]);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             const token = await user.getIdToken();
-            const res = await fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            setRmas(data.rmas || []);
+            const [activeRes, archivedRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}&archived=false`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}&archived=true`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            const [activeData, archivedData] = await Promise.all([
+                activeRes.json(),
+                archivedRes.json()
+            ]);
+
+            setActiveRmas(activeData.rmas || []);
+            setArchivedRmas(archivedData.rmas || []);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
@@ -57,10 +177,10 @@ export default function AdminDashboard() {
     useEffect(() => {
         const delay = setTimeout(fetchRMAs, 300);
         return () => clearTimeout(delay);
-    }, [search, page]);
+    }, [search, page, activeTab]);
 
     const handleUpdateStatus = async (id, step) => {
-        const currentRMA = rmas.find(r => r.id === id);
+        const currentRMA = activeRmas.find(r => r.id === id) || archivedRmas.find(r => r.id === id);
         if (!currentRMA) return;
 
         const stepsLogic = {
@@ -88,7 +208,7 @@ export default function AdminDashboard() {
 
             const data = await res.json();
             if (res.ok) {
-                setRmas(rmas.map(r => r.id === id ? data : r));
+                setActiveRmas(activeRmas.map(r => r.id === id ? data : r));
             } else {
                 alert(data.error || 'Update failed');
             }
@@ -108,7 +228,8 @@ export default function AdminDashboard() {
 
             if (res.ok) {
                 const data = await res.json();
-                setRmas(rmas.map(r => r.id === id ? data : r));
+                setActiveRmas(activeRmas.map(r => r.id === id ? data : r));
+                setArchivedRmas(archivedRmas.map(r => r.id === id ? data : r));
                 return true;
             }
             return false;
@@ -143,10 +264,41 @@ export default function AdminDashboard() {
             });
 
             if (res.ok) {
-                setRmas(rmas.filter(r => r.id !== id));
+                setActiveRmas(activeRmas.filter(r => r.id !== id));
+                setArchivedRmas(archivedRmas.filter(r => r.id !== id));
             } else {
                 const data = await res.json();
                 alert(`Delete failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        }
+    };
+
+    const handleArchiveRMA = async (id, rmaNumber) => {
+        if (!confirm(`Are you sure you want to archive RMA ${rmaNumber}?`)) return;
+
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/archive`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Move from active to archived
+                const archivedRma = activeRmas.find(r => r.id === id);
+                if (archivedRma) {
+                    setActiveRmas(activeRmas.filter(r => r.id !== id));
+                    setArchivedRmas([{ ...archivedRma, ...data }, ...archivedRmas]);
+                }
+            } else {
+                const data = await res.json();
+                alert(`Archive failed: ${data.error || 'Unknown error'}`);
             }
         } catch (err) {
             alert(`Network error: ${err.message}`);
@@ -217,7 +369,7 @@ export default function AdminDashboard() {
                 value={type === 'date' ? safeFormatForInput(localValue) : localValue}
                 onChange={e => setLocalValue(e.target.value)}
                 onBlur={onBlur}
-                disabled={isSaving || isRepresentative}
+                disabled={isSaving || isRepresentative || activeTab === 'archived'}
                 className="modern-inline-input"
                 style={{ width }}
             />
@@ -301,10 +453,31 @@ export default function AdminDashboard() {
         <div className="admin-dashboard-wrapper">
             {selectedRMA && <DetailsModal rma={selectedRMA} onClose={() => setSelectedRMA(null)} />}
 
+            <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept=".csv"
+                onChange={handleImport}
+            />
+
             <header className="dashboard-header">
                 <div className="dashboard-title-area">
                     <h1>RMA Inventory Management</h1>
                 </div>
+                {!isRepresentative && (
+                    <div className="admin-tools">
+                        <button onClick={handleExport} className="btn-tool btn-export" title="Export to CSV">
+                            <span>📤</span> Export
+                        </button>
+                        <button onClick={handleImportClick} className="btn-tool btn-import" title="Import from CSV">
+                            <span>📥</span> Import
+                        </button>
+                        <button onClick={handleDeleteAll} className="btn-tool btn-delete-all" title="Delete All (Current Tab)">
+                            <span>🗑️</span> Delete All
+                        </button>
+                    </div>
+                )}
                 <div className="search-container">
                     <input
                         placeholder="Search by RMA No, Serial, Email or Name..."
@@ -314,6 +487,21 @@ export default function AdminDashboard() {
                     />
                 </div>
             </header>
+
+            <div className="dashboard-tabs">
+                <button
+                    className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('active')}
+                >
+                    Active RMAs ({activeRmas.length})
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'archived' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('archived')}
+                >
+                    Archived RMAs ({archivedRmas.length})
+                </button>
+            </div>
 
             <div className="modern-card">
                 <div className="table-responsive" style={{ maxHeight: '82vh' }}>
@@ -362,7 +550,16 @@ export default function AdminDashboard() {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing data...</td></tr>
-                            ) : rmas.map(rma => {
+                            ) : (activeTab === 'active' ? activeRmas : archivedRmas).length === 0 ? (
+                                <tr>
+                                    <td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
+                                        {isRepresentative && !search.trim()
+                                            ? "Please enter a search term to view RMA records."
+                                            : "No records found matching your search."
+                                        }
+                                    </td>
+                                </tr>
+                            ) : (activeTab === 'active' ? activeRmas : archivedRmas).map(rma => {
                                 let rowClass = "";
                                 if (rma.dispatched) rowClass = "row-dispatched";
                                 else if (rma.inProgress) rowClass = "row-progress";
@@ -388,7 +585,7 @@ export default function AdminDashboard() {
                                             <select
                                                 value={rma.state || ''}
                                                 onChange={e => handleInlineUpdate(rma.id, 'state', e.target.value)}
-                                                disabled={isRepresentative}
+                                                disabled={isRepresentative || activeTab === 'archived'}
                                                 className="modern-select"
                                                 style={{ width: '120px' }}
                                             >
@@ -401,7 +598,7 @@ export default function AdminDashboard() {
                                             <select
                                                 value={rma.assignedTo || ''}
                                                 onChange={e => handleInlineUpdate(rma.id, 'assignedTo', e.target.value)}
-                                                disabled={isRepresentative}
+                                                disabled={isRepresentative || activeTab === 'archived'}
                                                 className="modern-select"
                                                 style={{ width: '150px' }}
                                             >
@@ -410,17 +607,17 @@ export default function AdminDashboard() {
                                             </select>
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.productReceived} onChange={() => handleUpdateStatus(rma.id, 'productReceived')} disabled={!!rma.productReceived || isRepresentative} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.productReceived} onChange={() => handleUpdateStatus(rma.id, 'productReceived')} disabled={!!rma.productReceived || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="faultDescription" value={rma.faultDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || !rma.productReceived || isRepresentative} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || !rma.productReceived || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td>
                                             <select
                                                 value={rma.huntsmanRepairStatus || ''}
                                                 onChange={e => handleInlineUpdate(rma.id, 'huntsmanRepairStatus', e.target.value)}
-                                                disabled={isRepresentative}
+                                                disabled={isRepresentative || activeTab === 'archived'}
                                                 className="modern-select"
                                                 style={{ width: '160px' }}
                                             >
@@ -431,13 +628,13 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="serialNumber" value={rma.serialNumber} width="140px" /></td>
                                         <td><TableInput rmaId={rma.id} field="repairDescription" value={rma.repairDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || !rma.investigationUnderway || isRepresentative} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || !rma.investigationUnderway || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td>
                                             <select
                                                 value={rma.sparePartsUpdate || ''}
                                                 onChange={e => handleSparePartsChange(rma.id, e.target.value)}
-                                                disabled={isRepresentative}
+                                                disabled={isRepresentative || activeTab === 'archived'}
                                                 className="modern-select"
                                                 style={{ width: '140px' }}
                                             >
@@ -447,7 +644,7 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="completeDateOfReturn" value={rma.completeDateOfReturn} type="date" width="130px" /></td>
                                         <td><TableInput rmaId={rma.id} field="trackingNumber" value={rma.trackingNumber} width="150px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || !rma.inProgress || isRepresentative} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || !rma.inProgress || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td>{formatDate(rma.productReceivedEmailAt)}</td>
                                         <td><TableInput rmaId={rma.id} field="startedServiceDate" value={rma.startedServiceDate} type="date" width="130px" /></td>
@@ -459,7 +656,7 @@ export default function AdminDashboard() {
                                             <select
                                                 value={rma.requireLabel || 'No'}
                                                 onChange={e => handleInlineUpdate(rma.id, 'requireLabel', e.target.value)}
-                                                disabled={isRepresentative}
+                                                disabled={isRepresentative || activeTab === 'archived'}
                                                 className="modern-select"
                                                 style={{ width: '80px' }}
                                             >
@@ -473,9 +670,21 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="height" value={rma.height} width="70px" /></td>
                                         <td style={{ position: 'sticky', right: 0, background: '#ffffff', boxShadow: '-2px 0 5px rgba(0,0,0,0.02)' }}>
                                             <div className="action-group">
-                                                <button onClick={() => setSelectedRMA(rma)} className="btn-action btn-view">View</button>
+                                                <button onClick={() => setSelectedRMA(rma)} className="btn-action btn-view" title="View Details">
+                                                    <span className="btn-icon">👁️</span>
+                                                    <span className="btn-text">View</span>
+                                                </button>
+                                                {!isRepresentative && activeTab === 'active' && (
+                                                    <button onClick={() => handleArchiveRMA(rma.id, rma.rmaNumber)} className="btn-action btn-archive" title="Archive Case">
+                                                        <span className="btn-icon">📦</span>
+                                                        <span className="btn-text">Archive</span>
+                                                    </button>
+                                                )}
                                                 {!isRepresentative && (
-                                                    <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove">Remove</button>
+                                                    <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove" title="Delete RMA">
+                                                        <span className="btn-icon">🗑️</span>
+                                                        <span className="btn-text">Remove</span>
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
@@ -488,8 +697,12 @@ export default function AdminDashboard() {
             </div>
 
             <footer style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.8rem' }}>
-                <div>Total RMAs Managed: <strong>{rmas.length}</strong></div>
-                <div>Live Sync Enabled</div>
+                <div>Total Active: <strong>{activeRmas.length}</strong> | Total Archived: <strong>{archivedRmas.length}</strong></div>
+                <div className="pagination">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Prev</button>
+                    <span>Page {page}</span>
+                    <button onClick={() => setPage(p => p + 1)} disabled={(activeTab === 'active' ? activeRmas : archivedRmas).length < 20}>Next</button>
+                </div>
             </footer>
         </div>
     );

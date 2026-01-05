@@ -200,9 +200,54 @@ const checkOverdues = async () => {
   }
 };
 
-const initCron = () => {
-  cron.schedule('0 8 * * *', checkOverdues);
-  console.log('✓ Cron Job Scheduled');
+const autoArchiveRMAs = async () => {
+  try {
+    if (!db) return;
+    console.log('📦 Running Auto-Archive Check...');
+    const snapshot = await db.collection('rmas')
+      .where('dispatched', '==', true)
+      .get();
+
+    const now = new Date();
+    let archivedCount = 0;
+
+    for (const doc of snapshot.docs) {
+      const rma = doc.data();
+      if (rma.archived) continue;
+
+      // Rule: 21 days after completion (dispatchedEmailAt or updatedAt)
+      const completionDate = rma.dispatchedEmailAt
+        ? (rma.dispatchedEmailAt.toDate ? rma.dispatchedEmailAt.toDate() : new Date(rma.dispatchedEmailAt))
+        : (rma.updatedAt.toDate ? rma.updatedAt.toDate() : new Date(rma.updatedAt));
+
+      const daysSinceCompletion = (now.getTime() - completionDate.getTime()) / 86400000;
+
+      if (daysSinceCompletion >= 21) {
+        await db.collection('rmas').doc(doc.id).update({
+          archived: true,
+          archivedAt: now,
+          updatedAt: now
+        });
+        archivedCount++;
+      }
+    }
+
+    if (archivedCount > 0) {
+      console.log(`✓ Auto-archived ${archivedCount} RMAs.`);
+    } else {
+      console.log('ℹ No RMAs to auto-archive.');
+    }
+  } catch (err) {
+    console.error('Auto-archive job failed:', err);
+  }
 };
 
-module.exports = { initCron, checkOverdues };
+const initCron = () => {
+  cron.schedule('0 8 * * *', () => {
+    checkOverdues();
+    autoArchiveRMAs();
+  });
+  console.log('✓ Cron Job Scheduled (Overdues & Auto-Archive)');
+};
+
+module.exports = { initCron, checkOverdues, autoArchiveRMAs };

@@ -19,7 +19,17 @@ app.use((req, res, next) => {
 const rmaController = require('./controllers/rmaController');
 const authController = require('./controllers/authController');
 const { initCron, checkOverdues } = require('./services/cronService');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+const upload = multer({ dest: 'uploads/' });
 
 app.get('/', (req, res) => res.json({ message: "Welcome to the RMA Backend API. Use /api/health to check status." }));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
@@ -36,6 +46,12 @@ app.post('/api/rma', rmaController.createRMA);
 
 // Admin (Protected)
 app.get('/api/admin/rmas', authController.protect, authController.adminOrRepresentative, rmaController.getRMAs);
+
+// Export/Import
+app.get('/api/admin/rmas/export', authController.protect, authController.adminOnly, rmaController.exportRMAs);
+app.post('/api/admin/rmas/import', authController.protect, authController.adminOnly, upload.single('file'), rmaController.importRMAs);
+app.delete('/api/admin/rmas/all', authController.protect, authController.adminOnly, rmaController.deleteAllRMAs);
+
 app.post('/api/admin/check-overdues', authController.protect, authController.adminOnly, async (req, res) => {
     try {
         await checkOverdues();
@@ -45,6 +61,7 @@ app.post('/api/admin/check-overdues', authController.protect, authController.adm
     }
 });
 app.put('/api/admin/rmas/:id/status', authController.protect, authController.adminOnly, rmaController.updateRMAStatus);
+app.put('/api/admin/rmas/:id/archive', authController.protect, authController.adminOnly, rmaController.archiveRMA);
 app.put('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.updateRMA);
 app.delete('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.deleteRMA);
 app.get('/api/admin/staff', authController.protect, authController.adminOrRepresentative, authController.getStaff);
