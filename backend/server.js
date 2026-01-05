@@ -8,26 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 
-const allowedOrigins = [
-    'https://rma-2.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5001'
-];
-
-app.use(cors({
-    origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            return callback(null, true); // Allow all for now during debug, but reflect the origin
-        }
-        return callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -42,13 +23,15 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
+// Ensure uploads directory exists (local only)
+const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+const uploadDir = isProd ? '/tmp' : path.join(__dirname, 'uploads');
+
+if (!isProd && !fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: uploadDir });
 
 app.get('/', (req, res) => res.json({ message: "Welcome to the RMA Backend API. Use /api/health to check status." }));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
