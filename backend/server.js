@@ -8,7 +8,26 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = [
+    'https://rma-2.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5001'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(null, true); // Allow all for now during debug, but reflect the origin
+        }
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -47,10 +66,10 @@ app.post('/api/rma', rmaController.createRMA);
 // Admin (Protected)
 app.get('/api/admin/rmas', authController.protect, authController.adminOrRepresentative, rmaController.getRMAs);
 
-// Export/Import
+// Export/Import/Bulk
+app.delete('/api/admin/rmas/all', authController.protect, authController.adminOnly, rmaController.deleteAllRMAs);
 app.get('/api/admin/rmas/export', authController.protect, authController.adminOnly, rmaController.exportRMAs);
 app.post('/api/admin/rmas/import', authController.protect, authController.adminOnly, upload.single('file'), rmaController.importRMAs);
-app.delete('/api/admin/rmas/all', authController.protect, authController.adminOnly, rmaController.deleteAllRMAs);
 
 app.post('/api/admin/check-overdues', authController.protect, authController.adminOnly, async (req, res) => {
     try {
