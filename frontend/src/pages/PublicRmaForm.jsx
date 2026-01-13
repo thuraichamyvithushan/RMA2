@@ -32,6 +32,70 @@ const STEPS = [
     { id: 4, title: 'Package' }
 ];
 
+const SearchableSelect = ({ name, value, options, onChange, placeholder, required }) => {
+    const [searchTerm, setSearchTerm] = useState(value || '');
+    const [isOpen, setIsOpen] = useState(false);
+
+    // Sync searchable term with value if changed externally (e.g. form reset)
+    React.useEffect(() => {
+        setSearchTerm(value || '');
+    }, [value]);
+
+    const filteredOptions = options.filter(opt =>
+        opt.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleInputClick = () => {
+        if (!isOpen) setIsOpen(true);
+    };
+
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setSearchTerm(val);
+        setIsOpen(true);
+        // Also update parent state so validation works, though we'll refine this on select
+        onChange({ target: { name, value: val } });
+    };
+
+    const handleOptionSelect = (opt) => {
+        setSearchTerm(opt);
+        setIsOpen(false);
+        onChange({ target: { name, value: opt } });
+    };
+
+    return (
+        <div className="searchable-select-container">
+            <input
+                type="text"
+                name={name}
+                value={searchTerm}
+                onChange={handleInputChange}
+                onClick={handleInputClick}
+                placeholder={placeholder}
+                autoComplete="off"
+                required={required}
+            />
+            {isOpen && searchTerm.length > 0 && (
+                <div className="searchable-select-dropdown">
+                    {filteredOptions.length > 0 ? (
+                        filteredOptions.map((opt, index) => (
+                            <div
+                                key={index}
+                                className="searchable-select-item"
+                                onClick={() => handleOptionSelect(opt)}
+                            >
+                                {opt}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="searchable-select-no-results">No results found</div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const PublicRmaForm = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -189,7 +253,7 @@ const PublicRmaForm = () => {
                                     <input type="email" name="email" value={formData.email} onChange={handleChange} required />
                                 </div>
                                 <div className="form-group">
-                                    <label>FullName*</label>
+                                    <label>Full Name*</label>
                                     <input type="text" name="name" value={formData.name} onChange={handleChange} required />
                                 </div>
                                 <div className="form-group">
@@ -198,7 +262,7 @@ const PublicRmaForm = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>Company Name*</label>
-                                    <input type="text" name="companyName" value={formData.companyName} onChange={handleChange}  required/>
+                                    <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} required />
                                 </div>
                             </div>
                         </div>
@@ -214,9 +278,14 @@ const PublicRmaForm = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>Model Name*</label>
-                                    <select name="modelName" value={formData.modelName} onChange={handleChange} required>
-                                        {MODEL_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                    </select>
+                                    <SearchableSelect
+                                        name="modelName"
+                                        value={formData.modelName}
+                                        options={MODEL_OPTIONS}
+                                        onChange={handleChange}
+                                        placeholder="Type to search model..."
+                                        required
+                                    />
                                 </div>
                                 {formData.modelName === 'Other' && (
                                     <div className="form-group">
@@ -257,10 +326,14 @@ const PublicRmaForm = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>State*</label>
-                                    <select name="state" value={formData.state} onChange={handleChange} required>
-                                        <option value="">Select State</option>
-                                        {STATE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
+                                    <SearchableSelect
+                                        name="state"
+                                        value={formData.state}
+                                        options={STATE_OPTIONS}
+                                        onChange={handleChange}
+                                        placeholder="Type to search state..."
+                                        required
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>Post Code*</label>
