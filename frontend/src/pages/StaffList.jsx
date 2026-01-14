@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
-import DashboardLayout from '../components/DashboardLayout';
 import './StaffList.css';
 
 const StaffList = () => {
@@ -75,80 +74,78 @@ const StaffList = () => {
     };
 
     return (
-        <DashboardLayout>
-            <div className="staff-table-container">
-                <div className="staff-table-header">
-                    <h2>Staff Management</h2>
-                </div>
-
-                {loading ? (
-                    <div className="loading-container">
-                        <p>Loading staff directories...</p>
-                    </div>
-                ) : (
-                    <div className="staff-table-wrapper">
-                        <table className="staff-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email Address</th>
-                                    <th>Role</th>
-                                    <th>Last Signed In</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {staff.map(member => (
-                                    <tr key={member.id}>
-                                        <td className="staff-name">{member.name || 'N/A'}</td>
-                                        <td className="staff-email">{member.email}</td>
-                                        <td>
-                                            <span className={`role-badge ${member.role}`}>
-                                                {member.role === 'admin' ? 'Admin' : member.role === 'representative' ? 'Representative' : 'Staff'}
-                                            </span>
-                                        </td>
-                                        <td className="last-signin">
-                                            {member.lastLogin ? new Date(member.lastLogin).toLocaleString() : 'Never'}
-                                        </td>
-                                        <td>
-                                            <div className="staff-actions">
-                                                {currentUserRole === 'admin' ? (
-                                                    <select
-                                                        className="role-select-inline"
-                                                        value={member.role}
-                                                        onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                                                        disabled={member.email === user.email}
-                                                    >
-                                                        <option value="staff">Staff</option>
-                                                        <option value="representative">Representative</option>
-                                                        <option value="admin">Admin</option>
-                                                    </select>
-                                                ) : (
-                                                    <span className="role-text-locked">Locked</span>
-                                                )}
-                                                <button
-                                                    className="action-btn delete"
-                                                    onClick={() => handleDeleteStaff(member.id)}
-                                                    title="Delete User"
-                                                    disabled={member.email === user.email || isRepresentative}
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {staff.length === 0 && (
-                            <div className="no-data-msg">
-                                <p>No staff members found in the directory.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+        <div className="staff-table-container">
+            <div className="staff-table-header">
+                <h2>Staff Management</h2>
             </div>
-        </DashboardLayout>
+
+            {loading ? (
+                <div className="loading-container">
+                    <p>Loading staff directories...</p>
+                </div>
+            ) : (
+                <div className="staff-table-wrapper">
+                    <table className="staff-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email Address</th>
+                                <th>Role</th>
+                                <th>Last Signed In</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {staff.map(member => (
+                                <tr key={member.id}>
+                                    <td className="staff-name">{member.name || 'N/A'}</td>
+                                    <td className="staff-email">{member.email}</td>
+                                    <td>
+                                        <span className={`role-badge ${member.role}`}>
+                                            {member.role === 'admin' ? 'Admin' : member.role === 'representative' ? 'Representative' : 'Staff'}
+                                        </span>
+                                    </td>
+                                    <td className="last-signin">
+                                        {member.lastLogin ? new Date(member.lastLogin).toLocaleString() : 'Never'}
+                                    </td>
+                                    <td>
+                                        <div className="staff-actions">
+                                            {currentUserRole === 'admin' ? (
+                                                <select
+                                                    className="role-select-inline"
+                                                    value={member.role}
+                                                    onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                                                    disabled={member.email === user.email}
+                                                >
+                                                    <option value="staff">Staff</option>
+                                                    <option value="representative">Representative</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            ) : (
+                                                <span className="role-text-locked">Locked</span>
+                                            )}
+                                            <button
+                                                className="action-btn delete"
+                                                onClick={() => handleDeleteStaff(member.id)}
+                                                title="Delete User"
+                                                disabled={member.email === user.email || isRepresentative}
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {staff.length === 0 && (
+                        <div className="no-data-msg">
+                            <p>No staff members found in the directory.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
     );
 };
 

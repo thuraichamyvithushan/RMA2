@@ -10,6 +10,9 @@ import PublicRmaForm from './pages/PublicRmaForm';
 import AdminDashboard from './pages/AdminDashboard';
 import StaffList from './pages/StaffList';
 import Profile from './pages/Profile';
+import Analytics from './pages/Analytics';
+import EmailAnalytics from './pages/EmailAnalytics';
+import HuntsmanAnalytics from './pages/HuntsmanAnalytics';
 import DashboardLayout from './components/DashboardLayout';
 
 const ProtectedRoute = ({ children }) => {
@@ -64,18 +67,14 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Private Routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <AdminDashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/staff" element={
-            <ProtectedRoute>
-              <StaffList />
-            </ProtectedRoute>
-          } />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="email-analytics" element={<EmailAnalytics />} />
+            <Route path="huntsman-analytics" element={<HuntsmanAnalytics />} />
+            <Route path="staff-list" element={<StaffList />} />
+          </Route>
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />

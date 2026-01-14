@@ -1,0 +1,264 @@
+.email-analytics-wrapper {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.btn-refresh {
+    padding: 0.625rem 1.25rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-refresh:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Centered */
+    text-align: center;
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+}
+
+.summary-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.pie-chart-section {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3.5rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pie-chart-section h2 {
+    font-size: 1.75rem;
+    color: #0f172a;
+    margin-bottom: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.pie-chart-container {
+    height: 550px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.custom-legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-text {
+    line-height: 1;
+}
+
+.email-tables-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+}
+
+.email-table-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.step-tag {
+    padding: 1.25rem 1.75rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.email-records-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.email-records-table th {
+    background: #f8fafc;
+    padding: 1rem 1.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+    border-bottom: 2px solid #e2e8f0;
+    letter-spacing: 0.05em;
+}
+
+.email-records-table td {
+    padding: 1rem 1.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.email-records-table tr:last-child td {
+    border-bottom: none;
+}
+
+.email-records-table tr:hover td {
+    background: #f8fafc;
+}
+
+.time-col {
+    font-weight: 700;
+    color: #1e293b;
+    white-space: nowrap;
+}
+
+.email-col {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 3rem !important;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .email-analytics-wrapper {
+        padding: 1rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .pie-chart-section {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .pie-chart-container {
+        height: 350px;
+    }
+
+    .summary-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .summary-card {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .summary-value {
+        font-size: 1.75rem;
+    }
+
+    .email-records-table th,
+    .email-records-table td {
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .step-tag {
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-stats {
+        grid-template-columns: 1fr;
+    }
+}
