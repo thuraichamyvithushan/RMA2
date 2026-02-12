@@ -1,44 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const PublicNavbar = ({ onLookup, loading }) => {
-    const [searchEmail, setSearchEmail] = useState('');
-    const [searchRmaNumber, setSearchRmaNumber] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onLookup(searchEmail, searchRmaNumber);
-    };
+const PublicNavbar = () => {
+    const navigate = useNavigate();
 
     return (
         <div className="public-navbar">
-            <div className="navbar-content">
-                <div className="navbar-brand-group">
-                    <div className="navbar-brand">
-                        <span className="brand-dot"></span>
-                        TRACK RMA
-                    </div>
-                    <div className="navbar-guidance">Enter your RMA number & email to see your status</div>
+            <div className="navbar-content" style={{ justifyContent: 'flex-start', display: 'flex', alignItems: 'center', width: '100%', maxWidth: '100%', paddingLeft: '2%' }}>
+                <div className="navbar-brand-group" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => navigate('/')}>
+                    <img
+                        src="/assets/topbanner.png"
+                        alt="Huntsman Optics"
+                        style={{ height: '40px', width: 'auto' }}
+                    />
                 </div>
-                <form onSubmit={handleSubmit} className="navbar-search-form">
-                    <input
-                        placeholder="RMA Number"
-                        value={searchRmaNumber}
-                        onChange={(e) => setSearchRmaNumber(e.target.value)}
-                        className="nav-search-input"
-                        required
-                    />
-                    <input
-                        type="email"
-                        placeholder="Email Address"
-                        value={searchEmail}
-                        onChange={(e) => setSearchEmail(e.target.value)}
-                        className="nav-search-input"
-                        required
-                    />
-                    <button type="submit" className="nav-search-btn" disabled={loading}>
-                        {loading ? 'Searching...' : 'Find Status'}
-                    </button>
-                </form>
             </div>
         </div>
     );

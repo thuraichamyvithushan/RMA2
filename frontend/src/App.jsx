@@ -14,6 +14,8 @@ import Analytics from './pages/Analytics';
 import EmailAnalytics from './pages/EmailAnalytics';
 import HuntsmanAnalytics from './pages/HuntsmanAnalytics';
 import DashboardLayout from './components/DashboardLayout';
+import LandingPage from './pages/LandingPage';
+import CheckRMA from './pages/CheckRMA';
 
 const ProtectedRoute = ({ children }) => {
   const { user, role, loading, syncing } = useAuth();
@@ -61,7 +63,9 @@ function App() {
       <Router>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<PublicRoute><PublicRmaForm /></PublicRoute>} />
+          <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+          <Route path="/submit-rma" element={<PublicRoute><PublicRmaForm /></PublicRoute>} />
+          <Route path="/check-rma" element={<PublicRoute><CheckRMA /></PublicRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -69,7 +73,6 @@ function App() {
           {/* Private Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
-            <Route path="analytics" element={<Analytics />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="email-analytics" element={<EmailAnalytics />} />
             <Route path="huntsman-analytics" element={<HuntsmanAnalytics />} />

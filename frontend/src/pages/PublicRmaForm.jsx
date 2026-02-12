@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PublicRmaForm.new.css';
 import { API_BASE_URL } from '../config';
 import PublicNavbar from '../components/PublicNavbar';
-import StatusResult from '../components/StatusResult';
-import StatusLookupModal from '../components/StatusLookupModal';
 
 const MODEL_OPTIONS = [
     "STELLAR 3.0 - SX60L 3.0", "STELLAR 3.0 - SQ50L 3.0", "STELLAR 3.0- SQ35L 3.0", "STELLAR 3.0- SH50L 3.0",
@@ -124,9 +122,10 @@ const PublicRmaForm = () => {
     });
 
     const [status, setStatus] = useState({ loading: false, success: false, error: null });
-    const [lookupResult, setLookupResult] = useState(null);
-    const [lookupStatus, setLookupStatus] = useState({ loading: false, error: null });
-    const [showLookupModal, setShowLookupModal] = useState(false);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -154,6 +153,7 @@ const PublicRmaForm = () => {
         if (validateStep(currentStep)) {
             setCurrentStep(prev => Math.min(prev + 1, 4));
             setStatus({ ...status, error: null });
+            window.scrollTo(0, 0);
         } else {
             setStatus({ ...status, error: 'Please fill in all required fields.' });
         }
@@ -162,6 +162,7 @@ const PublicRmaForm = () => {
     const handlePrevious = () => {
         setCurrentStep(prev => Math.max(prev - 1, 1));
         setStatus({ ...status, error: null });
+        window.scrollTo(0, 0);
     };
 
     const handleSubmit = async (e) => {
@@ -206,23 +207,7 @@ const PublicRmaForm = () => {
         }
     };
 
-    const handleLookup = async (email, rmaNumber) => {
-        if (!email || !rmaNumber) return;
 
-        setLookupStatus({ loading: true, error: null });
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/rma/lookup?email=${encodeURIComponent(email)}&rmaNumber=${encodeURIComponent(rmaNumber)}`);
-            const data = await response.json();
-
-            if (!response.ok) throw new Error(data.error || 'Lookup failed');
-            setLookupResult(data);
-        } catch (err) {
-            setLookupStatus({ loading: false, error: err.message });
-            setLookupResult(null);
-        } finally {
-            setLookupStatus({ loading: false, error: null });
-        }
-    };
 
     const formatDate = (dateValue) => {
         if (!dateValue) return '-';
@@ -265,17 +250,7 @@ const PublicRmaForm = () => {
 
     return (
         <div className="public-rma-wrapper">
-            <PublicNavbar onLookup={handleLookup} loading={lookupStatus.loading} />
-
-            {lookupStatus.error && (
-                <div className="form-max-width">
-                    <div className="lookup-error-banner">{lookupStatus.error}</div>
-                </div>
-            )}
-
-            <StatusResult result={lookupResult} onViewDetails={() => setShowLookupModal(true)} formatDate={formatDate} />
-
-            {showLookupModal && <StatusLookupModal rma={lookupResult} onClose={() => setShowLookupModal(false)} formatDate={formatDate} />}
+            <PublicNavbar />
 
             <div className="form-max-width">
 

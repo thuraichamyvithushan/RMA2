@@ -32,8 +32,6 @@
     margin-bottom: 24px;
     display: flex;
     justify-content: center;
-    position: sticky;
-    top: 0;
     z-index: 100;
 }
 
@@ -580,7 +578,7 @@
 
 @media (max-width: 768px) {
     .navbar-content {
-        flex-direction: column;
+        flex-direction: start;
         gap: 12px;
     }
 
@@ -602,5 +600,9 @@
     }
 }
 
-@media (max-width: 768px) { .form-max-width { padding: 0 16px; box-sizing: border-box; } }
-
+@media (max-width: 768px) {
+    .form-max-width {
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+}
