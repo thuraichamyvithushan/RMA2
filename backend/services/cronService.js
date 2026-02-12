@@ -107,7 +107,7 @@ const checkOverdues = async () => {
         }
 
         console.log(`[Cron] Sending report for ${overdueSelection.length} items to ${process.env.ADMIN_EMAIL}...`);
-        const dashUrl = process.env.FRONTEND_URL || 'https://rma-2.vercel.app';
+        const dashUrl = process.env.FRONTEND_URL || 'https://rma.hointernal.com';
 
         const csvStringifier = createObjectCsvStringifier({
             header: [
@@ -269,8 +269,9 @@ const initCron = () => {
         return;
     }
 
-    // Run daily at 8:00 AM
-    cron.schedule('0 8 * * *', async () => {
+    // Run daily at 8:00 AM AEST (Australian Eastern Standard Time)
+    // 8:00 AM AEST = 21:00 UTC (previous day)
+    cron.schedule('0 21 * * *', async () => {
         if (isTaskRunning) {
             console.log('[Cron] ⏳ Job already in progress, skipping this cycle.');
             return;
