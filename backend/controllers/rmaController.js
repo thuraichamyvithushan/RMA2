@@ -5,6 +5,7 @@ const csv = require('csv-parser');
 const fs = require('fs');
 
 exports.createRMA = async (req, res) => {
+    console.log('>>>>>>>>>>>>>> RECEIVED RMA SUBMISSION <<<<<<<<<<<<<<<');
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
@@ -15,13 +16,53 @@ exports.createRMA = async (req, res) => {
         const rmaData = {
             ...req.body,
             rmaNumber,
-            status: 'Pending',
+            status: 'Yet to be actioned',
             archived: false,
             createdAt: new Date(),
             updatedAt: new Date()
         };
 
         const docRef = await db.collection('rmas').add(rmaData);
+        console.log(`[CreateRMA] ✅ RMA Document created in Firestore with ID: ${docRef.id}`);
+
+        // Send confirmation emails
+        const emailData = {
+            sender: rmaData.name,
+            rmaNumber: rmaData.rmaNumber,
+            productSerialNo: rmaData.serialNumber,
+            productName: rmaData.modelName,
+            issueReported: rmaData.faultDescription,
+            customerEmail: rmaData.email,
+            contactPhone: rmaData.contactPhone,
+            address: rmaData.address
+        };
+
+        console.log(`[CreateRMA] Preparing to send emails. Admin: ${process.env.ADMIN_EMAIL}, User: ${rmaData.email}`);
+
+        // Notify Admin
+        if (process.env.ADMIN_EMAIL) {
+            console.log(`[CreateRMA] >> Triggering Admin Notification email...`);
+            sendEmail(process.env.ADMIN_EMAIL, 'adminNotification', emailData).then(() => {
+                console.log(`[CreateRMA] >> Admin Notification sent.`);
+            }).catch(err =>
+                console.error('[CreateRMA] !! Admin email error:', err.message)
+            );
+        } else {
+            console.warn('[CreateRMA] !! Skipping Admin Notification: process.env.ADMIN_EMAIL is not set.');
+        }
+
+        // Notify User
+        if (rmaData.email) {
+            console.log(`[CreateRMA] >> Triggering User Confirmation email...`);
+            sendEmail(rmaData.email, 'rmaSubmitted', emailData).then(() => {
+                console.log(`[CreateRMA] >> User Confirmation sent.`);
+            }).catch(err =>
+                console.error('[CreateRMA] !! User email error:', err.message)
+            );
+        } else {
+            console.warn('[CreateRMA] !! Skipping User Confirmation: rmaData.email is missing.');
+        }
+
         res.status(201).json({ id: docRef.id, ...rmaData });
     } catch (err) {
         console.error('Create RMA error:', err);
@@ -46,16 +87,16 @@ const formatDate = (dateValue) => {
 };
 
 exports.exportRMAs = async (req, res) => {
-    console.log('🏁 Export process started...');
+    console.log(' Export process started...');
     try {
         if (!db) {
-            console.error('❌ Database not initialized');
+            console.error(' Database not initialized');
             return res.status(500).json({ error: "Database not initialized" });
         }
 
-        console.log('📡 Fetching RMAs from Firestore...');
+        console.log(' Fetching RMAs from Firestore...');
         const snapshot = await db.collection('rmas').orderBy('createdAt', 'desc').get();
-        console.log(`✅ Snapshot retrieved. Size: ${snapshot.size}`);
+        console.log(`Snapshot retrieved. Size: ${snapshot.size}`);
 
         const rmas = [];
         snapshot.forEach(doc => {
@@ -74,21 +115,21 @@ exports.exportRMAs = async (req, res) => {
         });
 
         if (rmas.length === 0) {
-            console.warn('⚠️ No RMAs found to export.');
+            console.warn('No RMAs found to export.');
             return res.status(404).json({ error: "No RMAs found to export" });
         }
 
-        console.log(`📊 Processing ${rmas.length} records into CSV...`);
+        console.log(`Processing ${rmas.length} records into CSV...`);
         const parser = new Parser();
         const csvData = parser.parse(rmas);
 
-        console.log('✅ CSV generated successfully. Sending response...');
+        console.log(' CSV generated successfully. Sending response...');
         res.header('Content-Type', 'text/csv');
         res.attachment(`rmas_export_${new Date().toISOString().slice(0, 10)}.csv`);
         res.send(csvData);
 
     } catch (err) {
-        console.error('🚨 Export error:', err);
+        console.error('Export error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -235,8 +276,15 @@ exports.updateRMAStatus = async (req, res) => {
         const updates = { [step]: value, updatedAt: new Date() };
 
         if (value === true) {
+            const timestampField = `${step}EmailAt`;
+            // Record the timestamp immediately to ensure SLA logic has a baseline
+            if (!rma[timestampField]) {
+                updates[timestampField] = new Date();
+            }
+
             const emailData = {
                 sender: rma.name,
+                rmaNumber: rma.rmaNumber,
                 productSerialNo: rma.serialNumber,
                 productName: rma.modelName,
                 issueReported: rma.faultDescription,
@@ -245,19 +293,16 @@ exports.updateRMAStatus = async (req, res) => {
                 updateOnProduct: rma.updateOnProduct || ''
             };
 
-            const timestampField = `${step}EmailAt`;
             if (!rma[timestampField]) {
                 console.log(` Attempting to send ${step} email to ${rma.email}...`);
                 try {
                     const sent = await sendEmail(rma.email, step, emailData);
                     if (sent) {
-                        updates[timestampField] = new Date();
                         console.log(`✓ Email sent successfully to ${rma.email} for step: ${step}`);
-                    } else {
-                        console.error(`✗ Email failed to send to ${rma.email} for step: ${step}`);
                     }
                 } catch (emailError) {
-                    console.error(`✗ Email error for ${rma.email}:`, emailError.message);
+                    console.error(`✗ Email failed for ${rma.email}:`, emailError.message);
+                    // We don't throw here so the status still updates in DB
                 }
             } else {
                 console.log(`ℹ Email already sent for ${step} at ${rma[timestampField]}`);
@@ -329,7 +374,7 @@ exports.deleteRMA = async (req, res) => {
 exports.deleteAllRMAs = async (req, res) => {
     const { archived = 'false' } = req.query;
     const isArchived = archived === 'true';
-    console.log(`🗑️ [Bulk Delete] Request received. Target: ${isArchived ? 'ARCHIVED' : 'ACTIVE'} records.`);
+    console.log(` [Bulk Delete] Request received. Target: ${isArchived ? 'ARCHIVED' : 'ACTIVE'} records.`);
 
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
@@ -347,7 +392,7 @@ exports.deleteAllRMAs = async (req, res) => {
             }
         });
 
-        console.log(`📊 [Bulk Delete] Found ${docsToDelete.length} matching records to delete.`);
+        console.log(` [Bulk Delete] Found ${docsToDelete.length} matching records to delete.`);
 
         if (docsToDelete.length === 0) {
             return res.json({ message: "No matching records found to delete." });
@@ -360,17 +405,17 @@ exports.deleteAllRMAs = async (req, res) => {
         });
 
         await batch.commit();
-        console.log(`✅ [Bulk Delete] Successfully deleted ${docsToDelete.length} records.`);
+        console.log(` [Bulk Delete] Successfully deleted ${docsToDelete.length} records.`);
         res.json({ message: `Successfully deleted ${docsToDelete.length} ${isArchived ? 'archived' : 'active'} records.` });
     } catch (err) {
-        console.error('❌ [Bulk Delete] Error:', err);
+        console.error(' [Bulk Delete] Error:', err);
         res.status(500).json({ error: err.message });
     }
 };
 
 exports.archiveRMA = async (req, res) => {
     const { id } = req.params;
-    console.log(`📦 Attempting to archive RMA with ID: ${id}`);
+    console.log(` Attempting to archive RMA with ID: ${id}`);
     try {
         const rmaRef = db.collection('rmas').doc(id);
         const doc = await rmaRef.get();
@@ -390,6 +435,31 @@ exports.archiveRMA = async (req, res) => {
         res.json({ message: "RMA archived successfully", ...updates });
     } catch (err) {
         console.error(`✗ Archive error for ${id}:`, err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.lookupRMA = async (req, res) => {
+    const { email, rmaNumber } = req.query;
+
+    if (!email || !rmaNumber) {
+        return res.status(400).json({ error: "Email and RMA Number are required for lookup." });
+    }
+
+    try {
+        const snapshot = await db.collection('rmas')
+            .where('rmaNumber', '==', rmaNumber.trim())
+            .where('email', '==', email.trim().toLowerCase())
+            .get();
+
+        if (snapshot.empty) {
+            return res.status(404).json({ error: "No matching RMA found for the provided details." });
+        }
+
+        const rma = snapshot.docs[0].data();
+        res.json({ id: snapshot.docs[0].id, ...rma });
+    } catch (err) {
+        console.error('Lookup error:', err.message);
         res.status(500).json({ error: err.message });
     }
 };

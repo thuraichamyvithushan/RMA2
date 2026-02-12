@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../config';
 import './Analytics.css';
 
 const STEPS = [
-    { name: 'Pending', key: 'pending', color: '#64748b', rowClass: 'step-pending' },
+    { name: 'Yet to be actioned', key: 'pending', color: '#64748b', rowClass: 'step-pending' },
     { name: 'Received', key: 'productReceived', color: '#eab308', rowClass: 'step-received' },
     { name: 'Investigation', key: 'investigationUnderway', color: '#f97316', rowClass: 'step-investigating' },
     { name: 'In Progress', key: 'inProgress', color: '#ef4444', rowClass: 'step-progress' },

@@ -14,6 +14,12 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!email.endsWith('@huntsmanoptics.com')) {
+            setError('Please use your official Huntsman Optics email address.');
+            return;
+        }
+
         setLoading(true);
         try {
             const userCredential = await login(email, password);

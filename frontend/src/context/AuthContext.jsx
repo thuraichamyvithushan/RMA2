@@ -61,7 +61,19 @@ export const AuthProvider = ({ children }) => {
     const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
     const logout = () => signOut(auth);
     const resetPassword = (email) => sendPasswordResetEmail(auth, email);
-    const updateUserDetails = (displayName) => updateProfile(auth.currentUser, { displayName });
+    const updateUserDetails = async (displayName) => {
+        await updateProfile(auth.currentUser, { displayName });
+        // Sync with backend to ensure Firestore has the updated name
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch(`${API_BASE_URL}/api/auth/sync`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setRole(data.role);
+        }
+    };
 
     const value = {
         user,

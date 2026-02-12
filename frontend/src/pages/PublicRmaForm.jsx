@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './PublicRmaForm.new.css';
 import { API_BASE_URL } from '../config';
+import PublicNavbar from '../components/PublicNavbar';
+import StatusResult from '../components/StatusResult';
+import StatusLookupModal from '../components/StatusLookupModal';
 
 const MODEL_OPTIONS = [
     "STELLAR 3.0 - SX60L 3.0", "STELLAR 3.0 - SQ50L 3.0", "STELLAR 3.0- SQ35L 3.0", "STELLAR 3.0- SH50L 3.0",
@@ -75,7 +78,7 @@ const SearchableSelect = ({ name, value, options, onChange, placeholder, require
                 autoComplete="off"
                 required={required}
             />
-            {isOpen && searchTerm.length > 0 && (
+            {isOpen && (
                 <div className="searchable-select-dropdown">
                     {filteredOptions.length > 0 ? (
                         filteredOptions.map((opt, index) => (
@@ -104,7 +107,7 @@ const PublicRmaForm = () => {
         companyName: '',
         contactPhone: '',
         serialNumber: '',
-        modelName: MODEL_OPTIONS[0],
+        modelName: '',
         otherModelName: '',
         faultDescription: '',
         customerReference: '',
@@ -121,6 +124,9 @@ const PublicRmaForm = () => {
     });
 
     const [status, setStatus] = useState({ loading: false, success: false, error: null });
+    const [lookupResult, setLookupResult] = useState(null);
+    const [lookupStatus, setLookupStatus] = useState({ loading: false, error: null });
+    const [showLookupModal, setShowLookupModal] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -189,7 +195,7 @@ const PublicRmaForm = () => {
             setStatus({ loading: false, success: true, error: null });
             setFormData({
                 email: '', name: '', companyName: '', contactPhone: '',
-                serialNumber: '', modelName: MODEL_OPTIONS[0], otherModelName: '', faultDescription: '',
+                serialNumber: '', modelName: '', otherModelName: '', faultDescription: '',
                 customerReference: '', requireLabel: 'No', address: '',
                 suburb: '', state: '', postCode: '', contentsOfPackage: '',
                 weight: '', width: '', height: '', length: ''
@@ -199,6 +205,43 @@ const PublicRmaForm = () => {
             setStatus({ loading: false, success: false, error: err.message });
         }
     };
+
+    const handleLookup = async (email, rmaNumber) => {
+        if (!email || !rmaNumber) return;
+
+        setLookupStatus({ loading: true, error: null });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/rma/lookup?email=${encodeURIComponent(email)}&rmaNumber=${encodeURIComponent(rmaNumber)}`);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || 'Lookup failed');
+            setLookupResult(data);
+        } catch (err) {
+            setLookupStatus({ loading: false, error: err.message });
+            setLookupResult(null);
+        } finally {
+            setLookupStatus({ loading: false, error: null });
+        }
+    };
+
+    const formatDate = (dateValue) => {
+        if (!dateValue) return '-';
+        try {
+            let date;
+            if (dateValue._seconds !== undefined) {
+                date = new Date(dateValue._seconds * 1000);
+            } else if (dateValue && typeof dateValue === 'object' && dateValue.toDate) {
+                date = dateValue.toDate();
+            } else {
+                date = new Date(dateValue);
+            }
+            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+        } catch (e) {
+            return '-';
+        }
+    };
+
+    // formatDate is used by the modal component
 
     if (status.success) {
         return (
@@ -222,6 +265,18 @@ const PublicRmaForm = () => {
 
     return (
         <div className="public-rma-wrapper">
+            <PublicNavbar onLookup={handleLookup} loading={lookupStatus.loading} />
+
+            {lookupStatus.error && (
+                <div className="form-max-width">
+                    <div className="lookup-error-banner">{lookupStatus.error}</div>
+                </div>
+            )}
+
+            <StatusResult result={lookupResult} onViewDetails={() => setShowLookupModal(true)} formatDate={formatDate} />
+
+            {showLookupModal && <StatusLookupModal rma={lookupResult} onClose={() => setShowLookupModal(false)} formatDate={formatDate} />}
+
             <div className="form-max-width">
 
                 <div className="rma-google-card rma-header-card">

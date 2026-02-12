@@ -52,17 +52,24 @@ exports.adminOrRepresentative = async (req, res, next) => {
 exports.syncUser = async (req, res) => {
     try {
         const { uid, email, name, picture } = req.user;
+        console.log(`[Auth] Sync request for: ${email}, UID: ${uid}`);
+
+        if (!email.endsWith('@huntsmanoptics.com')) {
+            console.warn(`[Auth] Blocked login attempt from unauthorized domain: ${email}`);
+            return res.status(403).json({ message: 'Access denied. Please use your official Huntsman Optics email address.' });
+        }
+
         const userRef = db.collection('users').doc(uid);
+        const existingDoc = await userRef.get();
+        const isNewUser = !existingDoc.exists;
+        console.log(`[Auth] isNewUser: ${isNewUser}`);
 
         const snapshot = await db.collection('users').get();
         let role = 'staff';
         if (snapshot.empty) {
             role = 'admin';
-        } else {
-            const existingDoc = await userRef.get();
-            if (existingDoc.exists) {
-                role = existingDoc.data().role || 'staff';
-            }
+        } else if (!isNewUser) {
+            role = existingDoc.data().role || 'staff';
         }
 
         await userRef.set({
@@ -73,8 +80,27 @@ exports.syncUser = async (req, res) => {
             role
         }, { merge: true });
 
+        // Notify admin about first-time registration only
+        if (process.env.ADMIN_EMAIL && isNewUser) {
+            console.log(`[Auth] Triggering admin notification to ${process.env.ADMIN_EMAIL}`);
+            try {
+                await sendEmail(process.env.ADMIN_EMAIL, 'adminAuthNotification', {
+                    sender: name || email,
+                    email: email,
+                    isNewUser: isNewUser,
+                    role: role
+                });
+                console.log(`[Auth] Admin notification sent.`);
+            } catch (emailErr) {
+                console.error('Failed to send admin auth notification:', emailErr.message);
+            }
+        } else {
+            console.log(`[Auth] Skipping admin notification. ADMIN_EMAIL set? ${!!process.env.ADMIN_EMAIL}, isNewUser? ${isNewUser}`);
+        }
+
         res.json({ message: 'User synced', role });
     } catch (err) {
+        console.error('[Auth] Sync error:', err);
         res.status(500).json({ error: err.message });
     }
 };

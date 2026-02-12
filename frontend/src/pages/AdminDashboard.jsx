@@ -137,6 +137,14 @@ export default function AdminDashboard() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlSearch = params.get('search') || params.get('rma');
+        if (urlSearch) {
+            setSearch(urlSearch);
+        }
+    }, []);
+
     const fetchRMAs = async () => {
         if (!user) return;
 
@@ -342,9 +350,9 @@ export default function AdminDashboard() {
     const getStatusPill = (rma) => {
         if (rma.dispatched) return <span className="status-pill status-completed">Dispatched</span>;
         if (rma.inProgress) return <span className="status-pill status-active">In Progress</span>;
-        if (rma.investigationUnderway) return <span className="status-pill status-investigating">Investigating</span>;
+        if (rma.investigationUnderway) return <span className="status-pill status-investigating">Investigation</span>;
         if (rma.productReceived) return <span className="status-pill status-received">Received</span>;
-        return <span className="status-pill status-pending">Pending</span>;
+        return <span className="status-pill status-pending">Yet to be actioned</span>;
     };
 
     const TableInput = ({ rmaId, field, value, type = 'text', width = '200px' }) => {
@@ -427,10 +435,10 @@ export default function AdminDashboard() {
                         </Section>
 
                         <Section title="Email Sent Timestamps">
-                            <Field label="Product Received" value={formatDate(rma.productReceivedEmailAt)} />
-                            <Field label="Investigation" value={formatDate(rma.investigationUnderwayEmailAt)} />
-                            <Field label="Product Update" value={formatDate(rma.inProgressEmailAt)} />
-                            <Field label="Dispatched" value={formatDate(rma.dispatchedEmailAt)} />
+                            <Field label="Product Received" value={formatDate(rma.productReceivedEmailAt || (rma.productReceived ? rma.updatedAt : null))} />
+                            <Field label="Investigation" value={formatDate(rma.investigationUnderwayEmailAt || (rma.investigationUnderway ? rma.updatedAt : null))} />
+                            <Field label="Service Start" value={formatDate(rma.inProgressEmailAt || (rma.inProgress ? rma.updatedAt : null))} />
+                            <Field label="Dispatched" value={formatDate(rma.dispatchedEmailAt || (rma.dispatched ? rma.updatedAt : null))} />
                         </Section>
 
                         <Section title="Logistics & Teams">
@@ -472,9 +480,6 @@ export default function AdminDashboard() {
                         </button>
                         <button onClick={handleImportClick} className="btn-tool btn-import" title="Import from CSV">
                             <span>📥</span> Import
-                        </button>
-                        <button onClick={handleDeleteAll} className="btn-tool btn-delete-all" title="Delete All (Current Tab)">
-                            <span>🗑️</span> Delete All
                         </button>
                     </div>
                 )}
@@ -523,18 +528,18 @@ export default function AdminDashboard() {
                                 <th style={{ minWidth: '160px' }}>Assign Team</th>
                                 <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>Product Received</th>
                                 <th style={{ minWidth: '250px' }}>Fault Description</th>
-                                <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>investigation Underway</th>
+                                <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>Investigation</th>
                                 <th style={{ minWidth: '180px' }}>Huntsman Status</th>
                                 <th style={{ minWidth: '150px' }}>Serial Number</th>
                                 <th style={{ minWidth: '250px' }}>Repair Notes</th>
-                                <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>Update on product</th>
+                                <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>In Progress</th>
                                 <th style={{ minWidth: '150px' }}>Spare Parts</th>
                                 <th style={{ minWidth: '150px' }}>Return Date</th>
                                 <th style={{ minWidth: '160px' }}>Tracking No</th>
                                 <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>product Dispatch</th>
                                 <th style={{ minWidth: '150px' }}>Received</th>
-                                <th style={{ minWidth: '150px' }}>Service Start</th>
                                 <th style={{ minWidth: '150px' }}>Investigation</th>
+                                <th style={{ minWidth: '150px' }}>In Progress</th>
                                 <th style={{ minWidth: '150px' }}>Update Sent</th>
                                 <th style={{ minWidth: '150px' }}>Part Ordered</th>
                                 <th style={{ minWidth: '150px' }}>Part Received</th>
@@ -611,7 +616,7 @@ export default function AdminDashboard() {
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="faultDescription" value={rma.faultDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || !rma.productReceived || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td>
                                             <select
@@ -628,7 +633,7 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="serialNumber" value={rma.serialNumber} width="140px" /></td>
                                         <td><TableInput rmaId={rma.id} field="repairDescription" value={rma.repairDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || !rma.investigationUnderway || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td>
                                             <select
@@ -644,12 +649,12 @@ export default function AdminDashboard() {
                                         <td><TableInput rmaId={rma.id} field="completeDateOfReturn" value={rma.completeDateOfReturn} type="date" width="130px" /></td>
                                         <td><TableInput rmaId={rma.id} field="trackingNumber" value={rma.trackingNumber} width="150px" /></td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || !rma.inProgress || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
+                                            <input type="checkbox" checked={!!rma.dispatched} onChange={() => handleUpdateStatus(rma.id, 'dispatched')} disabled={!!rma.dispatched || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
-                                        <td>{formatDate(rma.productReceivedEmailAt)}</td>
-                                        <td><TableInput rmaId={rma.id} field="startedServiceDate" value={rma.startedServiceDate} type="date" width="130px" /></td>
-                                        <td><TableInput rmaId={rma.id} field="investigationUnderwayEmailAt" value={rma.investigationUnderwayEmailAt} type="date" width="130px" /></td>
-                                        <td><TableInput rmaId={rma.id} field="inProgressEmailAt" value={rma.inProgressEmailAt} type="date" width="130px" /></td>
+                                        <td>{formatDate(rma.productReceivedEmailAt || (rma.productReceived ? rma.updatedAt : null))}</td>
+                                        <td>{formatDate(rma.investigationUnderwayEmailAt || (rma.investigationUnderway ? rma.updatedAt : null))}</td>
+                                        <td>{formatDate(rma.inProgressEmailAt || (rma.inProgress ? rma.updatedAt : null))}</td>
+                                        <td>{formatDate(rma.dispatchedEmailAt || (rma.dispatched ? rma.updatedAt : null))}</td>
                                         <td><TableInput rmaId={rma.id} field="sparePartOrdered" value={rma.sparePartOrdered} type="date" width="130px" /></td>
                                         <td><TableInput rmaId={rma.id} field="sparePartReceived" value={rma.sparePartReceived} type="date" width="130px" /></td>
                                         <td>

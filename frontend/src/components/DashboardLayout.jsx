@@ -78,6 +78,7 @@ const DashboardLayout = ({ children }) => {
             </nav>
 
             <main className="dashboard-content">
+                {children}
                 <Outlet />
             </main>
         </div>

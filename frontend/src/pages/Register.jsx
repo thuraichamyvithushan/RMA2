@@ -17,6 +17,12 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!email.endsWith('@huntsmanoptics.com')) {
+            setError('Please use your official Huntsman Optics email address.');
+            return;
+        }
+
         setLoading(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
@@ -39,7 +45,7 @@ const Register = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-               <h2>Sign Up  </h2>
+                <h2>Sign Up  </h2>
                 <h5>Hello! Let's join with us.</h5>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">

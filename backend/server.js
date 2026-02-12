@@ -1,5 +1,13 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-require('dotenv').config();
+console.log('=========================================');
+console.log('       RMA BACKEND STARTING UP          ');
+console.log(`Port: ${process.env.PORT || 5001}`);
+console.log(`Admin Email: ${process.env.ADMIN_EMAIL || 'NOT SET'}`);
+console.log(`Email User: ${process.env.EMAIL_USER || 'NOT SET'}`);
+console.log('=========================================');
+
 const express = require('express');
 const cors = require('cors');
 const { auth: firebaseAuth } = require('./config/firebase');
@@ -20,7 +28,6 @@ const rmaController = require('./controllers/rmaController');
 const authController = require('./controllers/authController');
 const { initCron, checkOverdues } = require('./services/cronService');
 const multer = require('multer');
-const path = require('path');
 const fs = require('fs');
 
 // Ensure uploads directory exists (local only)
@@ -45,6 +52,7 @@ app.post('/api/auth/sync', authController.protect, authController.syncUser);
 
 // Public
 app.post('/api/rma', rmaController.createRMA);
+app.get('/api/rma/lookup', rmaController.lookupRMA);
 
 // Admin (Protected)
 app.get('/api/admin/rmas', authController.protect, authController.adminOrRepresentative, rmaController.getRMAs);
