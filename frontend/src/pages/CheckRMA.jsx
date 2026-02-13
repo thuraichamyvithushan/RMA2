@@ -65,14 +65,14 @@ const CheckRMA = () => {
                         </svg>
                     </div>
                     <h1 className="check-rma-title">Track Your RMA</h1>
-                    <p className="check-rma-subtitle">Enter your RMA number and email address to view the current status of your return request</p>
+                    <p className="check-rma-subtitle">Enter your Booking number and email address to view the current status of your return request</p>
                 </div>
 
                 <div className="check-rma-form-card">
                     <form onSubmit={handleLookup} className="check-rma-form">
                         <div className="form-row">
                             <div className="form-field">
-                                <label htmlFor="rmaNumber">RMA Number</label>
+                                <label htmlFor="rmaNumber">Booking Number</label>
                                 <div className="input-wrapper">
                                     <svg className="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>

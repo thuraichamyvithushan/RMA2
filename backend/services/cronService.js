@@ -112,7 +112,7 @@ const checkOverdues = async () => {
         const csvStringifier = createObjectCsvStringifier({
             header: [
                 { id: 'no', title: 'No.' },
-                { id: 'rmaNumber', title: 'RMA Number' },
+                { id: 'rmaNumber', title: 'Booking Number' },
                 { id: 'name', title: 'Customer' },
                 { id: 'email', title: 'Email' },
                 { id: 'modelName', title: 'Model' },

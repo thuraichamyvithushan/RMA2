@@ -4,95 +4,95 @@ const nodemailer = require('nodemailer');
 const { createObjectCsvStringifier } = require('csv-writer');
 
 const SLA_DAYS = {
-    investigating: 4,
-    inProgress: 5,
-    dispatched: 5
+  investigating: 4,
+  inProgress: 5,
+  dispatched: 5
 };
 
 const _fmt = (d) => new Date(d).toISOString().replace('T', ' ').split('.')[0];
 
 const getTransporter = () => {
-    const user = (process.env.EMAIL_USER || '').trim();
-    const pass = (process.env.EMAIL_PASS || '').trim().replace(/\s+/g, '');
+  const user = (process.env.EMAIL_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || '').trim().replace(/\s+/g, '');
 
-    return nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        pool: false,
-        greetingTimeout: 30000,
-        auth: { user, pass }
-    });
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    pool: false,
+    greetingTimeout: 30000,
+    auth: { user, pass }
+  });
 };
 
 const sendSampleOverdueEmail = async () => {
-    try {
-        const transporter = getTransporter();
-        const now = new Date();
-        const nowStr = now.toISOString().replace('T', ' ').split('.')[0];
-        const dashUrl = process.env.FRONTEND_URL || 'https://rma-2.vercel.app';
+  try {
+    const transporter = getTransporter();
+    const now = new Date();
+    const nowStr = now.toISOString().replace('T', ' ').split('.')[0];
+    const dashUrl = process.env.FRONTEND_URL || 'https://rma-2.vercel.app';
 
-        // Mock data for the sample email
-        const overdueSelection = [
-            {
-                rma: {
-                    rmaNumber: 'RMA-SAM-001',
-                    name: 'John Doe (Sample)',
-                    email: 'sample@example.com',
-                    modelName: 'Sample Product Pro',
-                    serialNumber: 'SN-123456789',
-                    faultDescription: 'The device does not power on.'
-                },
-                label: 'Investigation',
-                baselineDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-                age: 5
-            },
-            {
-                rma: {
-                    rmaNumber: 'RMA-SAM-002',
-                    name: 'Jane Smith (Sample)',
-                    email: 'jane.sample@example.com',
-                    modelName: 'Elite Watch Series 9',
-                    serialNumber: 'SN-987654321',
-                    faultDescription: 'Screen flickering.'
-                },
-                label: 'In Progress',
-                baselineDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
-                age: 6
-            }
-        ];
+    // Mock data for the sample email
+    const overdueSelection = [
+      {
+        rma: {
+          rmaNumber: 'RMA-SAM-001',
+          name: 'John Doe (Sample)',
+          email: 'sample@example.com',
+          modelName: 'Sample Product Pro',
+          serialNumber: 'SN-123456789',
+          faultDescription: 'The device does not power on.'
+        },
+        label: 'Investigation',
+        baselineDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+        age: 5
+      },
+      {
+        rma: {
+          rmaNumber: 'RMA-SAM-002',
+          name: 'Jane Smith (Sample)',
+          email: 'jane.sample@example.com',
+          modelName: 'Elite Watch Series 9',
+          serialNumber: 'SN-987654321',
+          faultDescription: 'Screen flickering.'
+        },
+        label: 'In Progress',
+        baselineDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+        age: 6
+      }
+    ];
 
-        const csvStringifier = createObjectCsvStringifier({
-            header: [
-                { id: 'no', title: 'No.' },
-                { id: 'rmaNumber', title: 'RMA Number' },
-                { id: 'name', title: 'Customer' },
-                { id: 'email', title: 'Email' },
-                { id: 'modelName', title: 'Model' },
-                { id: 'serialNumber', title: 'Serial' },
-                { id: 'faultDescription', title: 'Fault' },
-                { id: 'baselineDate', title: 'Baseline Date' },
-                { id: 'missingStep', title: 'Missing Step' },
-                { id: 'viewUrl', title: 'View Link' }
-            ]
-        });
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'no', title: 'No.' },
+        { id: 'rmaNumber', title: 'Booking Number' },
+        { id: 'name', title: 'Customer' },
+        { id: 'email', title: 'Email' },
+        { id: 'modelName', title: 'Model' },
+        { id: 'serialNumber', title: 'Serial' },
+        { id: 'faultDescription', title: 'Fault' },
+        { id: 'baselineDate', title: 'Baseline Date' },
+        { id: 'missingStep', title: 'Missing Step' },
+        { id: 'viewUrl', title: 'View Link' }
+      ]
+    });
 
-        const csvRecords = overdueSelection.map((o, index) => ({
-            no: index + 1,
-            rmaNumber: o.rma.rmaNumber,
-            name: o.rma.name,
-            email: o.rma.email,
-            modelName: o.rma.modelName,
-            serialNumber: o.rma.serialNumber,
-            faultDescription: o.rma.faultDescription,
-            baselineDate: _fmt(o.baselineDate),
-            missingStep: o.label,
-            viewUrl: `${dashUrl}/dashboard?search=${encodeURIComponent(o.rma.rmaNumber)}`
-        }));
+    const csvRecords = overdueSelection.map((o, index) => ({
+      no: index + 1,
+      rmaNumber: o.rma.rmaNumber,
+      name: o.rma.name,
+      email: o.rma.email,
+      modelName: o.rma.modelName,
+      serialNumber: o.rma.serialNumber,
+      faultDescription: o.rma.faultDescription,
+      baselineDate: _fmt(o.baselineDate),
+      missingStep: o.label,
+      viewUrl: `${dashUrl}/dashboard?search=${encodeURIComponent(o.rma.rmaNumber)}`
+    }));
 
-        const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(csvRecords);
+    const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(csvRecords);
 
-        const tableRows = overdueSelection.map((o, index) => `
+    const tableRows = overdueSelection.map((o, index) => `
       <tr>
         <td style="padding:6px;border:1px solid #ddd;text-align:center;">${index + 1}</td>
         <td style="padding:6px;border:1px solid #ddd;">${o.rma.rmaNumber}</td>
@@ -111,7 +111,7 @@ const sendSampleOverdueEmail = async () => {
       </tr>
     `).join('');
 
-        const html = `
+    const html = `
   <div style="font-family:Arial, sans-serif; line-height:1.45; max-width:1000px;">
     <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
       <h2 style="margin:0; font-size: 24px;">⚠️ RMA Updates Overdue (SAMPLE FORMAT)</h2>
@@ -151,23 +151,23 @@ const sendSampleOverdueEmail = async () => {
   </div>
 `;
 
-        console.log(`Sending sample report to ${process.env.ADMIN_EMAIL}...`);
+    console.log(`Sending sample report to ${process.env.ADMIN_EMAIL}...`);
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: process.env.ADMIN_EMAIL,
-            subject: `RMA Overdue Report (SAMPLE FORMAT)`,
-            html: html,
-            attachments: [{
-                filename: `RMA_Overdue_SAMPLE_${nowStr}.csv`,
-                content: csvData
-            }]
-        });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `RMA Overdue Report (SAMPLE FORMAT)`,
+      html: html,
+      attachments: [{
+        filename: `RMA_Overdue_SAMPLE_${nowStr}.csv`,
+        content: csvData
+      }]
+    });
 
-        console.log(`✓ Sample email sent successfully to ${process.env.ADMIN_EMAIL}`);
-    } catch (err) {
-        console.error('✗ Failed to send sample email:', err);
-    }
+    console.log(`✓ Sample email sent successfully to ${process.env.ADMIN_EMAIL}`);
+  } catch (err) {
+    console.error('✗ Failed to send sample email:', err);
+  }
 };
 
 sendSampleOverdueEmail();

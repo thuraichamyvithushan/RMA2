@@ -28,7 +28,7 @@ const StatusResult = ({ result, onViewDetails, formatDate }) => {
                             <tr>
                                 <th style={{ minWidth: '150px' }}>Date Lodged</th>
                                 <th style={{ minWidth: '130px' }}>Status</th>
-                                <th style={{ minWidth: '150px' }}>RMA Number</th>
+                                <th style={{ minWidth: '150px' }}>Booking Number</th>
                                 <th style={{ minWidth: '180px' }}>Model Name</th>
                                 <th style={{ minWidth: '200px' }}>Customer / Company</th>
                                 <th style={{ minWidth: '120px' }}>Reference</th>

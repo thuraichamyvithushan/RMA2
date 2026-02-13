@@ -20,7 +20,7 @@ const _esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/<
 const getSubject = (step, serial) => {
   switch (step) {
     case 'adminNotification': return `New RMA Submission – ${serial}`;
-    case 'rmaSubmitted': return `RMA Submission Confirmed – RMA Number ${serial}`;
+    case 'rmaSubmitted': return `RMA Submission Confirmed – Booking Number ${serial}`;
     case 'productReceived': return `Confirmation of Product Receipt – Serial Number ${serial}`;
     case 'investigationUnderway': return `Investigation Underway – Serial Number ${serial}`;
     case 'inProgress': return `Update on Your Product – Serial Number ${serial}`;
@@ -49,7 +49,7 @@ const getHtmlBody = (step, data) => {
       <p>A new RMA request has been submitted on <strong>${_esc(dateStr)}</strong>.</p>
       <p><strong>RMA Details:</strong></p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Customer Name:</strong> ${_esc(sender)}</li>
         <li><strong>Customer Email:</strong> ${_esc(customerEmail)}</li>
         <li><strong>Contact Phone:</strong> ${_esc(contactPhone)}</li>
@@ -70,7 +70,7 @@ const getHtmlBody = (step, data) => {
       <p>Thank you for submitting your RMA request. We have received your submission on <strong>${_esc(dateStr)}</strong>.</p>
       <p><strong>Your RMA Details:</strong></p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
         <li><strong>Product Name:</strong> ${_esc(productName)}</li>
         <li><strong>Issue Reported:</strong> ${_esc(issueReported)}</li>
@@ -88,7 +88,7 @@ const getHtmlBody = (step, data) => {
       <p>Thank you for sending us your product for RMA services. We have received it on <strong>${_esc(dateStr)}</strong>. 
       It has been lodged into our Repair Centre, and we will contact you with updates shortly.</p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
         <li><strong>Product Name:</strong> ${_esc(productName)}</li>
         <li><strong>Issue Reported:</strong> ${_esc(issueReported)}</li>
@@ -103,7 +103,7 @@ const getHtmlBody = (step, data) => {
       <p>Dear ${_esc(sender)},</p>
       <p>We have started investigating your product's issue as part of the RMA services process. Our technical team is working diligently to diagnose the problem.</p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
         <li><strong>Status:</strong> Investigation started on <strong>${_esc(dateStr)}</strong></li>
       </ul>
@@ -118,7 +118,7 @@ const getHtmlBody = (step, data) => {
       <p>We have completed the diagnosis of your product and have identified the necessary parts required to resolve the issue. These parts have been ordered from our Head Office at Hikmicro.</p>
       <p><strong>RMA Details:</strong></p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
       </ul>
       <p>We will keep you informed of any updates regarding the parts' arrival and the next steps in the process.</p>
@@ -132,7 +132,7 @@ const getHtmlBody = (step, data) => {
       <p>Dear ${_esc(sender)},</p>
       <p>We’re pleased to inform you that the RMA services process for your product has been completed and will be sent back to your allocated address as soon as possible on the tracking below.</p>
       <ul>
-        <li><strong>RMA Number:</strong> ${_esc(rmaNumber)}</li>
+        <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
         <li><strong>Repair Performed:</strong> ${_esc(repairDescription)}</li>
         <li><strong>Tracking Number:</strong> ${_esc(trackingNumber)}</li>

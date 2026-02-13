@@ -173,7 +173,7 @@ export default function Analytics() {
                             <table className="step-table">
                                 <thead>
                                     <tr>
-                                        <th>RMA Number</th>
+                                        <th>Booking Number</th>
                                         <th>Model Name</th>
                                         <th>Serial Number</th>
                                         <th>Customer</th>

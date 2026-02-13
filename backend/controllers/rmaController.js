@@ -443,7 +443,7 @@ exports.lookupRMA = async (req, res) => {
     const { email, rmaNumber } = req.query;
 
     if (!email || !rmaNumber) {
-        return res.status(400).json({ error: "Email and RMA Number are required for lookup." });
+        return res.status(400).json({ error: "Email and Booking Number are required for lookup." });
     }
 
     try {

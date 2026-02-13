@@ -259,7 +259,7 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteRMA = async (id, rmaNumber) => {
-        if (!confirm(`Are you sure you want to PERMANENTLY delete RMA ${rmaNumber}?`)) return;
+        if (!confirm(`Are you sure you want to PERMANENTLY delete Booking ${rmaNumber}?`)) return;
 
         try {
             const token = await user.getIdToken();
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
     };
 
     const handleArchiveRMA = async (id, rmaNumber) => {
-        if (!confirm(`Are you sure you want to archive RMA ${rmaNumber}?`)) return;
+        if (!confirm(`Are you sure you want to archive Booking ${rmaNumber}?`)) return;
 
         try {
             const token = await user.getIdToken();
@@ -515,7 +515,7 @@ export default function AdminDashboard() {
                             <tr>
                                 <th style={{ minWidth: '150px' }}>Date Lodged</th>
                                 <th style={{ minWidth: '130px' }}>Status</th>
-                                <th style={{ minWidth: '150px' }}>RMA Number</th>
+                                <th style={{ minWidth: '150px' }}>Booking Number</th>
                                 <th style={{ minWidth: '180px' }}>Model Name</th>
                                 <th style={{ minWidth: '200px' }}>Customer / Company</th>
                                 <th style={{ minWidth: '120px' }}>Reference</th>
@@ -686,7 +686,7 @@ export default function AdminDashboard() {
                                                     </button>
                                                 )}
                                                 {!isRepresentative && (
-                                                    <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove" title="Delete RMA">
+                                                    <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove" title="Delete Booking">
                                                         <span className="btn-icon">🗑️</span>
                                                         <span className="btn-text">Remove</span>
                                                     </button>
