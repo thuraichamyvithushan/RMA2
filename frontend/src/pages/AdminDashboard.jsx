@@ -481,6 +481,9 @@ export default function AdminDashboard() {
                         <button onClick={handleImportClick} className="btn-tool btn-import" title="Import from CSV">
                             <span>📥</span> Import
                         </button>
+                        <button onClick={handleDeleteAll} className="btn-tool btn-delete-all" title={`Delete All ${activeTab === 'active' ? 'Active' : 'Archived'} Records`}>
+                            <span>🗑️</span> Delete All
+                        </button>
                     </div>
                 )}
                 <div className="search-container">

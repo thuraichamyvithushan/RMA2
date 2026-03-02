@@ -11,7 +11,7 @@ exports.createRMA = async (req, res) => {
 
         const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomPart = Math.floor(1000 + Math.random() * 9000);
-        const rmaNumber = `RMA-${datePart}-${randomPart}`;
+        const rmaNumber = `BKN-${datePart}-${randomPart}`;
 
         const rmaData = {
             ...req.body,
@@ -190,7 +190,7 @@ exports.importRMAs = async (req, res) => {
                             // No RMA number, create new
                             const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
                             const randomPart = Math.floor(1000 + Math.random() * 9000);
-                            cleanedData.rmaNumber = `RMA-${datePart}-${randomPart}`;
+                            cleanedData.rmaNumber = `BKN-${datePart}-${randomPart}`;
                             cleanedData.createdAt = new Date();
                             rmaRef = db.collection('rmas').doc();
                             batch.set(rmaRef, cleanedData);

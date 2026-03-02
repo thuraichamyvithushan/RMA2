@@ -25,7 +25,7 @@ const StatusLookupModal = ({ rma, onClose, formatDate }) => {
                 <div className="modal-header">
                     <div>
                         <h2 style={{ fontSize: '1.25rem', color: '#0f172a', margin: 0, fontWeight: '700' }}>
-                            RMA Summary: <span style={{ color: '#d30000' }}>{rma.rmaNumber}</span>
+                            Booking Summary: <span style={{ color: '#d30000' }}>{rma.rmaNumber}</span>
                         </h2>
                         <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0' }}>Case lodged on {formatDate(rma.createdAt)}</p>
                     </div>

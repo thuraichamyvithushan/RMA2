@@ -54,7 +54,7 @@ const RmaTable = () => {
     return (
         <div className="rma-table-wrapper">
             <div className="table-header-actions">
-                <h2>RMA Management</h2>
+                <h2>Booking Management</h2>
                 <form onSubmit={handleSearch} className="search-bar">
                     <input
                         type="text"
@@ -118,7 +118,7 @@ const RmaTable = () => {
                         ))}
                     </tbody>
                 </table>
-                {rmas.length === 0 && !loading && <p className="no-data">No RMA records found.</p>}
+                {rmas.length === 0 && !loading && <p className="no-data">No booking records found.</p>}
                 {loading && <p className="loading-text">Loading...</p>}
             </div>
         </div>

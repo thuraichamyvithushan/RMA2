@@ -233,7 +233,7 @@ const PublicRmaForm = () => {
             <div className="public-rma-wrapper">
                 <div className="form-max-width rma-google-card rma-header-card">
                     <div className="rma-header">
-                        <h1>RMA Submitted!</h1>
+                        <h1>Booking Submitted!</h1>
                         <p className="success-msg">Your response has been recorded. We will contact you via email shortly.</p>
                         <button
                             onClick={() => setStatus({ ...status, success: false })}
@@ -257,7 +257,7 @@ const PublicRmaForm = () => {
                 <div className="rma-google-card rma-header-card">
                     <img src="/assets/topbanner.png" alt="Banner" style={{ width: '20%', height: 'auto', display: 'block' }} />
                     <div className="rma-header">
-                        <h1>RMA Submission Form</h1>
+                        <h1>Booking Submission Form</h1>
                         <p>Please fill out the form below to initiate your return request.</p>
                     </div>
                 </div>

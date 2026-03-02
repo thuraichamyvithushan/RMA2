@@ -64,7 +64,7 @@ const CheckRMA = () => {
                             <path d="m21 21-4.35-4.35"></path>
                         </svg>
                     </div>
-                    <h1 className="check-rma-title">Track Your RMA</h1>
+                    <h1 className="check-rma-title">Track Your Booking</h1>
                     <p className="check-rma-subtitle">Enter your Booking number and email address to view the current status of your return request</p>
                 </div>
 
@@ -83,7 +83,7 @@ const CheckRMA = () => {
                                         type="text"
                                         value={searchRmaNumber}
                                         onChange={(e) => setSearchRmaNumber(e.target.value)}
-                                        placeholder="e.g., RMA-2024-0001"
+                                        placeholder="e.g., BKN-20240101-1234"
                                         required
                                     />
                                 </div>
@@ -135,7 +135,7 @@ const CheckRMA = () => {
                                         <circle cx="11" cy="11" r="8"></circle>
                                         <path d="m21 21-4.35-4.35"></path>
                                     </svg>
-                                    Find My RMA
+                                    Find My Booking
                                 </>
                             )}
                         </button>
@@ -148,7 +148,7 @@ const CheckRMA = () => {
                 <div className="results-modal-overlay" onClick={() => setLookupResult(null)}>
                     <div className="results-modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="results-modal-header">
-                            <h2>RMA Details</h2>
+                            <h2>Booking Details</h2>
                             <button className="modal-close-btn" onClick={() => setLookupResult(null)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>

@@ -19,15 +19,15 @@ const _esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/<
 
 const getSubject = (step, serial) => {
   switch (step) {
-    case 'adminNotification': return `New RMA Submission – ${serial}`;
-    case 'rmaSubmitted': return `RMA Submission Confirmed – Booking Number ${serial}`;
+    case 'adminNotification': return `New Booking Submission – ${serial}`;
+    case 'rmaSubmitted': return `Booking Submission Confirmed – Booking Number ${serial}`;
     case 'productReceived': return `Confirmation of Product Receipt – Serial Number ${serial}`;
     case 'investigationUnderway': return `Investigation Underway – Serial Number ${serial}`;
     case 'inProgress': return `Update on Your Product – Serial Number ${serial}`;
     case 'dispatched': return `Repair and Assessment of Warranty Completed – Serial Number ${serial}`;
     case 'roleUpdated': return `Portal Access Updated – Your New Role: ${serial}`;
     case 'adminAuthNotification': return `User ${serial} Notification`;
-    default: return `RMA Update – Serial Number ${serial}`;
+    default: return `Booking Update – Serial Number ${serial}`;
   }
 };
 
@@ -45,9 +45,9 @@ const getHtmlBody = (step, data) => {
 
   if (step === 'adminNotification') {
     return `
-      <h2 style="color: #673ab7;">New RMA Submission Received</h2>
+      <h2 style="color: #673ab7;">New Booking Submission Received</h2>
       <p>A new RMA request has been submitted on <strong>${_esc(dateStr)}</strong>.</p>
-      <p><strong>RMA Details:</strong></p>
+      <p><strong>Booking Details:</strong></p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Customer Name:</strong> ${_esc(sender)}</li>
@@ -59,7 +59,7 @@ const getHtmlBody = (step, data) => {
         <li><strong>Address:</strong> ${_esc(address)}</li>
       </ul>
       <p><strong>Action Required:</strong></p>
-      <p>Please review this RMA submission in the admin panel and update the status accordingly.</p>
+      <p>Please review this booking submission in the admin panel and update the status accordingly.</p>
       ${signature}
     `;
   }
@@ -68,7 +68,7 @@ const getHtmlBody = (step, data) => {
     return `
       <p>Dear ${_esc(sender)},</p>
       <p>Thank you for submitting your RMA request. We have received your submission on <strong>${_esc(dateStr)}</strong>.</p>
-      <p><strong>Your RMA Details:</strong></p>
+      <p><strong>Your Booking Details:</strong></p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
@@ -85,7 +85,7 @@ const getHtmlBody = (step, data) => {
   if (step === 'productReceived') {
     return `
       <p>Dear ${_esc(sender)},</p>
-      <p>Thank you for sending us your product for RMA services. We have received it on <strong>${_esc(dateStr)}</strong>. 
+      <p>Thank you for sending us your product for Repair services. We have received it on <strong>${_esc(dateStr)}</strong>. 
       It has been lodged into our Repair Centre, and we will contact you with updates shortly.</p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
@@ -101,7 +101,7 @@ const getHtmlBody = (step, data) => {
   if (step === 'investigationUnderway') {
     return `
       <p>Dear ${_esc(sender)},</p>
-      <p>We have started investigating your product's issue as part of the RMA services process. Our technical team is working diligently to diagnose the problem.</p>
+      <p>We have started investigating your product's issue as part of the Repair services process. Our technical team is working diligently to diagnose the problem.</p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
@@ -116,7 +116,7 @@ const getHtmlBody = (step, data) => {
     return `
       <p>Dear ${_esc(sender)},</p>
       <p>We have completed the diagnosis of your product and have identified the necessary parts required to resolve the issue. These parts have been ordered from our Head Office at Hikmicro.</p>
-      <p><strong>RMA Details:</strong></p>
+      <p><strong>Booking Details:</strong></p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
@@ -130,7 +130,7 @@ const getHtmlBody = (step, data) => {
   if (step === 'dispatched') {
     return `
       <p>Dear ${_esc(sender)},</p>
-      <p>We’re pleased to inform you that the RMA services process for your product has been completed and will be sent back to your allocated address as soon as possible on the tracking below.</p>
+      <p>We’re pleased to inform you that the Repair services process for your product has been completed and will be sent back to your allocated address as soon as possible on the tracking below.</p>
       <ul>
         <li><strong>Booking Number:</strong> ${_esc(rmaNumber)}</li>
         <li><strong>Serial Number:</strong> ${_esc(productSerialNo)}</li>
