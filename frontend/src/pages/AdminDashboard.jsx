@@ -313,6 +313,37 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUnarchiveRMA = async (id, rmaNumber) => {
+        if (!confirm(`Are you sure you want to unarchive Booking ${rmaNumber}?`)) return;
+
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/unarchive`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Move from archived to active
+                const unarchivedRma = archivedRmas.find(r => r.id === id);
+                if (unarchivedRma) {
+                    setArchivedRmas(archivedRmas.filter(r => r.id !== id));
+                    setActiveRmas([{ ...unarchivedRma, ...data }, ...activeRmas]);
+                }
+                alert('RMA unarchived successfully');
+            } else {
+                const data = await res.json();
+                alert(`Unarchive failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        }
+    };
+
     const formatDate = (dateValue) => {
         if (!dateValue) return '-';
         try {
@@ -686,6 +717,12 @@ export default function AdminDashboard() {
                                                     <button onClick={() => handleArchiveRMA(rma.id, rma.rmaNumber)} className="btn-action btn-archive" title="Archive Case">
                                                         <span className="btn-icon">📦</span>
                                                         <span className="btn-text">Archive</span>
+                                                    </button>
+                                                )}
+                                                {!isRepresentative && activeTab === 'archived' && (
+                                                    <button onClick={() => handleUnarchiveRMA(rma.id, rma.rmaNumber)} className="btn-action btn-archive" title="Unarchive Case" style={{ borderColor: '#10b981', color: '#10b981' }}>
+                                                        <span className="btn-icon">📤</span>
+                                                        <span className="btn-text">Unarchive</span>
                                                     </button>
                                                 )}
                                                 {!isRepresentative && (

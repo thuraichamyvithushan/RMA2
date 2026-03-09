@@ -439,6 +439,32 @@ exports.archiveRMA = async (req, res) => {
     }
 };
 
+exports.unarchiveRMA = async (req, res) => {
+    const { id } = req.params;
+    console.log(` 🔓 Attempting to unarchive RMA with ID: ${id}`);
+    try {
+        const rmaRef = db.collection('rmas').doc(id);
+        const doc = await rmaRef.get();
+        if (!doc.exists) {
+            console.error(`✗ RMA not found: ${id}`);
+            return res.status(404).json({ error: "RMA not found" });
+        }
+
+        const updates = {
+            archived: false,
+            archivedAt: null,
+            updatedAt: new Date()
+        };
+
+        await rmaRef.update(updates);
+        console.log(`✓ RMA unarchived successfully: ${id}`);
+        res.json({ message: "RMA unarchived successfully", ...updates });
+    } catch (err) {
+        console.error(`✗ Unarchive error for ${id}:`, err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 exports.lookupRMA = async (req, res) => {
     const { email, rmaNumber } = req.query;
 

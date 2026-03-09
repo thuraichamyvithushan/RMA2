@@ -72,6 +72,7 @@ app.post('/api/admin/check-overdues', authController.protect, authController.adm
 });
 app.put('/api/admin/rmas/:id/status', authController.protect, authController.adminOnly, rmaController.updateRMAStatus);
 app.put('/api/admin/rmas/:id/archive', authController.protect, authController.adminOnly, rmaController.archiveRMA);
+app.put('/api/admin/rmas/:id/unarchive', authController.protect, authController.adminOnly, rmaController.unarchiveRMA);
 app.put('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.updateRMA);
 app.delete('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.deleteRMA);
 app.get('/api/admin/staff', authController.protect, authController.adminOrRepresentative, authController.getStaff);
