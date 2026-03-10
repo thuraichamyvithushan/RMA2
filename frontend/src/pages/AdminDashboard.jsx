@@ -96,40 +96,6 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleDeleteAll = async () => {
-        if (isRepresentative) return;
-
-        const tabName = activeTab === 'active' ? 'ACTIVE' : 'ARCHIVED';
-        const msg = `⚠️ WARNING: This will PERMANENTLY delete ALL ${tabName} records! \n\nAre you sure you want to proceed?`;
-
-        if (!window.confirm(msg)) return;
-
-        const confirmText = window.prompt(`Type "DELETE" to confirm the mass deletion of all ${tabName} records:`);
-        if (confirmText !== 'DELETE') {
-            alert('Deletion cancelled. Confirmation text did not match.');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const token = await user.getIdToken();
-            const response = await fetch(`${API_BASE_URL}/api/admin/rmas/all?archived=${activeTab === 'archived'}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Bulk delete failed');
-
-            alert(result.message);
-            fetchRMAs();
-        } catch (err) {
-            console.error('Bulk delete error:', err);
-            alert('Error: ' + err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -511,9 +477,6 @@ export default function AdminDashboard() {
                         </button>
                         <button onClick={handleImportClick} className="btn-tool btn-import" title="Import from CSV">
                             <span>📥</span> Import
-                        </button>
-                        <button onClick={handleDeleteAll} className="btn-tool btn-delete-all" title={`Delete All ${activeTab === 'active' ? 'Active' : 'Archived'} Records`}>
-                            <span>🗑️</span> Delete All
                         </button>
                     </div>
                 )}
