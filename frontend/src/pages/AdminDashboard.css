@@ -1,4 +1,3 @@
-
 .admin-dashboard-wrapper {
     max-width: 100%;
     padding: 1.5rem;
@@ -165,6 +164,10 @@
 
 /* Greenish */
 
+.row-highlight-blue {
+    background-color: #e0f2fe !important;
+}
+
 .modern-table tr:hover td {
     filter: brightness(0.96);
 }
@@ -293,6 +296,10 @@
 
 .row-dispatched td[style*="position: sticky"] {
     background-color: #dcfce7 !important;
+}
+
+.row-highlight-blue td[style*="position: sticky"] {
+    background-color: #e0f2fe !important;
 }
 
 .modern-table tr:hover .sticky-column,

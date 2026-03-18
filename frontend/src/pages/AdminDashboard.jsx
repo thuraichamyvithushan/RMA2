@@ -202,8 +202,8 @@ export default function AdminDashboard() {
 
             if (res.ok) {
                 const data = await res.json();
-                setActiveRmas(activeRmas.map(r => r.id === id ? data : r));
-                setArchivedRmas(archivedRmas.map(r => r.id === id ? data : r));
+                setActiveRmas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
+                setArchivedRmas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
                 return true;
             }
             return false;
@@ -307,6 +307,24 @@ export default function AdminDashboard() {
             }
         } catch (err) {
             alert(`Network error: ${err.message}`);
+        }
+    };
+
+    const toggleHighlight = async (rma) => {
+        if (isRepresentative) return;
+
+        // Optimistic UI update
+        const newState = !rma.isHighlighted;
+        setActiveRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: newState } : r));
+        setArchivedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: newState } : r));
+
+        const success = await handleInlineUpdate(rma.id, 'isHighlighted', newState);
+
+        // Revert if backend failed
+        if (!success) {
+            setActiveRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: !newState } : r));
+            setArchivedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: !newState } : r));
+            alert("Failed to save Highlight status to server.");
         }
     };
 
@@ -510,6 +528,7 @@ export default function AdminDashboard() {
                     <table className="modern-table">
                         <thead>
                             <tr>
+                                <th style={{ minWidth: '50px', width: '50px' }}></th>
                                 <th style={{ minWidth: '150px' }}>Date Lodged</th>
                                 <th style={{ minWidth: '130px' }}>Status</th>
                                 <th style={{ minWidth: '150px' }}>Booking Number</th>
@@ -568,8 +587,31 @@ export default function AdminDashboard() {
                                 else if (rma.investigationUnderway) rowClass = "row-investigation";
                                 else if (rma.productReceived) rowClass = "row-received";
 
+                                const isHighlighted = rma.isHighlighted === true;
+                                if (isHighlighted) rowClass = "row-highlight-blue";
+
                                 return (
                                     <tr key={rma.id} className={rowClass}>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <button
+                                                onClick={() => toggleHighlight(rma)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    fontSize: '1.2rem',
+                                                    padding: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: isHighlighted ? '#3b82f6' : '#94a3b8',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                title="Toggle Highlight"
+                                            >
+                                                {isHighlighted ? '★' : '☆'}
+                                            </button>
+                                        </td>
                                         <td>{formatDate(rma.createdAt)}</td>
                                         <td>{getStatusPill(rma)}</td>
                                         <td style={{ fontWeight: '700', color: '#0f172a' }}>{rma.rmaNumber}</td>

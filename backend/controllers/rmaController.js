@@ -333,7 +333,7 @@ exports.updateRMA = async (req, res) => {
             'trackingNumber', 'repairDescription', 'updateOnProduct',
             'assignedTo', 'huntsmanRepairStatus', 'sparePartsUpdate',
             'sparePartOrdered', 'sparePartReceived', 'completeDateOfReturn',
-            'receivedDate', 'startedServiceDate'
+            'receivedDate', 'startedServiceDate', 'isHighlighted'
         ];
 
         const updates = { updatedAt: new Date() };
