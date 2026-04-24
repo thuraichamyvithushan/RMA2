@@ -466,24 +466,41 @@ exports.unarchiveRMA = async (req, res) => {
 };
 
 exports.lookupRMA = async (req, res) => {
-    const { email, rmaNumber } = req.query;
+    const { email, identifier, rmaNumber } = req.query;
+    const searchId = identifier || rmaNumber;
 
-    if (!email || !rmaNumber) {
-        return res.status(400).json({ error: "Email and Booking Number are required for lookup." });
+    if (!email || !searchId) {
+        return res.status(400).json({ error: "Email and Booking/Serial Number are required for lookup." });
     }
 
     try {
+        const searchIdTrimmed = searchId.trim();
+        const emailTrimmed = email.trim().toLowerCase();
+
+        // Query by email first to handle both rmaNumber and serialNumber flexibly
         const snapshot = await db.collection('rmas')
-            .where('rmaNumber', '==', rmaNumber.trim())
-            .where('email', '==', email.trim().toLowerCase())
+            .where('email', '==', emailTrimmed)
             .get();
 
         if (snapshot.empty) {
             return res.status(404).json({ error: "No matching RMA found for the provided details." });
         }
 
-        const rma = snapshot.docs[0].data();
-        res.json({ id: snapshot.docs[0].id, ...rma });
+        // Filter the results to match either rmaNumber or serialNumber
+        let matchedDoc = null;
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            if (data.rmaNumber === searchIdTrimmed || data.serialNumber === searchIdTrimmed) {
+                matchedDoc = { id: doc.id, ...data };
+                break;
+            }
+        }
+
+        if (!matchedDoc) {
+            return res.status(404).json({ error: "No matching RMA found for the provided details." });
+        }
+
+        res.json(matchedDoc);
     } catch (err) {
         console.error('Lookup error:', err.message);
         res.status(500).json({ error: err.message });
