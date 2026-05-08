@@ -74,7 +74,8 @@ app.put('/api/admin/rmas/:id/status', authController.protect, authController.adm
 app.put('/api/admin/rmas/:id/archive', authController.protect, authController.adminOnly, rmaController.archiveRMA);
 app.put('/api/admin/rmas/:id/unarchive', authController.protect, authController.adminOnly, rmaController.unarchiveRMA);
 app.put('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.updateRMA);
-app.delete('/api/admin/rmas/:id', authController.protect, authController.adminOnly, rmaController.deleteRMA);
+app.put('/api/admin/rmas/:id/delete', authController.protect, authController.adminOnly, rmaController.deleteRMA);
+app.put('/api/admin/rmas/:id/restore', authController.protect, authController.adminOnly, rmaController.restoreRMA);
 app.get('/api/admin/staff', authController.protect, authController.adminOrRepresentative, authController.getStaff);
 app.put('/api/admin/users/:uid/role', authController.protect, authController.adminOnly, authController.updateUserRole);
 app.delete('/api/admin/users/:uid', authController.protect, authController.adminOnly, authController.deleteUser);

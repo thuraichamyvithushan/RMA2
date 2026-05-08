@@ -24,6 +24,7 @@ const STATE_OPTIONS = [
 export default function AdminDashboard() {
     const [activeRmas, setActiveRmas] = useState([]);
     const [archivedRmas, setArchivedRmas] = useState([]);
+    const [deletedRmas, setDeletedRmas] = useState([]);
     const [activeTab, setActiveTab] = useState('active'); // 'active' or 'archived'
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -118,6 +119,7 @@ export default function AdminDashboard() {
         if (isRepresentative && !search.trim()) {
             setActiveRmas([]);
             setArchivedRmas([]);
+            setDeletedRmas([]);
             setLoading(false);
             return;
         }
@@ -125,22 +127,27 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const token = await user.getIdToken();
-            const [activeRes, archivedRes] = await Promise.all([
+            const [activeRes, archivedRes, deletedRes] = await Promise.all([
                 fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}&archived=false`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
                 fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}&archived=true`, {
                     headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_BASE_URL}/api/admin/rmas?page=${page}&search=${search}&deleted=true`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
 
-            const [activeData, archivedData] = await Promise.all([
+            const [activeData, archivedData, deletedData] = await Promise.all([
                 activeRes.json(),
-                archivedRes.json()
+                archivedRes.json(),
+                deletedRes.json()
             ]);
 
             setActiveRmas(activeData.rmas || []);
             setArchivedRmas(archivedData.rmas || []);
+            setDeletedRmas(deletedData.rmas || []);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
@@ -204,6 +211,7 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setActiveRmas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
                 setArchivedRmas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
+                setDeletedRmas(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
                 return true;
             }
             return false;
@@ -225,12 +233,12 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteRMA = async (id, rmaNumber) => {
-        if (!confirm(`Are you sure you want to PERMANENTLY delete Booking ${rmaNumber}?`)) return;
+        if (!confirm(`Are you sure you want to move Booking ${rmaNumber} to Deleted RMAs?`)) return;
 
         try {
             const token = await user.getIdToken();
-            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}`, {
-                method: 'DELETE',
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/delete`, {
+                method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -238,11 +246,48 @@ export default function AdminDashboard() {
             });
 
             if (res.ok) {
-                setActiveRmas(activeRmas.filter(r => r.id !== id));
-                setArchivedRmas(archivedRmas.filter(r => r.id !== id));
+                const deletedRma =
+                    activeRmas.find(r => r.id === id) ||
+                    archivedRmas.find(r => r.id === id);
+
+                setActiveRmas(prev => prev.filter(r => r.id !== id));
+                setArchivedRmas(prev => prev.filter(r => r.id !== id));
+
+                if (deletedRma) {
+                    setDeletedRmas(prev => [{ ...deletedRma, deleted: true }, ...prev]);
+                }
             } else {
                 const data = await res.json();
                 alert(`Delete failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        }
+    };
+
+    const handleRestoreRMA = async (id, rmaNumber) => {
+        if (!confirm(`Restore Booking ${rmaNumber}?`)) return;
+
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/admin/rmas/${id}/restore`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const restoredRma = deletedRmas.find(r => r.id === id);
+                setDeletedRmas(prev => prev.filter(r => r.id !== id));
+
+                if (restoredRma) {
+                    setActiveRmas(prev => [{ ...restoredRma, deleted: false }, ...prev]);
+                }
+            } else {
+                const data = await res.json();
+                alert(`Restore failed: ${data.error || 'Unknown error'}`);
             }
         } catch (err) {
             alert(`Network error: ${err.message}`);
@@ -317,6 +362,7 @@ export default function AdminDashboard() {
         const newState = !rma.isHighlighted;
         setActiveRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: newState } : r));
         setArchivedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: newState } : r));
+        setDeletedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: newState } : r));
 
         const success = await handleInlineUpdate(rma.id, 'isHighlighted', newState);
 
@@ -324,6 +370,7 @@ export default function AdminDashboard() {
         if (!success) {
             setActiveRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: !newState } : r));
             setArchivedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: !newState } : r));
+            setDeletedRmas(current => current.map(r => r.id === rma.id ? { ...r, isHighlighted: !newState } : r));
             alert("Failed to save Highlight status to server.");
         }
     };
@@ -369,6 +416,13 @@ export default function AdminDashboard() {
         if (rma.productReceived) return <span className="status-pill status-received">Received</span>;
         return <span className="status-pill status-pending">Yet to be actioned</span>;
     };
+
+    const currentRmas =
+        activeTab === 'active'
+            ? activeRmas
+            : activeTab === 'archived'
+                ? archivedRmas
+                : deletedRmas;
 
     const TableInput = ({ rmaId, field, value, type = 'text', width = '200px' }) => {
         const [localValue, setLocalValue] = useState(value || '');
@@ -521,6 +575,12 @@ export default function AdminDashboard() {
                 >
                     Archived RMAs ({archivedRmas.length})
                 </button>
+                <button
+                    className={`tab-btn ${activeTab === 'deleted' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('deleted')}
+                >
+                    Deleted RMAs ({deletedRmas.length})
+                </button>
             </div>
 
             <div className="modern-card">
@@ -571,7 +631,7 @@ export default function AdminDashboard() {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing data...</td></tr>
-                            ) : (activeTab === 'active' ? activeRmas : archivedRmas).length === 0 ? (
+                            ) : currentRmas.length === 0 ? (
                                 <tr>
                                     <td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
                                         {isRepresentative && !search.trim()
@@ -580,7 +640,7 @@ export default function AdminDashboard() {
                                         }
                                     </td>
                                 </tr>
-                            ) : (activeTab === 'active' ? activeRmas : archivedRmas).map(rma => {
+                            ) : currentRmas.map(rma => {
                                 let rowClass = "";
                                 if (rma.dispatched) rowClass = "row-dispatched";
                                 else if (rma.inProgress) rowClass = "row-progress";
@@ -730,7 +790,13 @@ export default function AdminDashboard() {
                                                         <span className="btn-text">Unarchive</span>
                                                     </button>
                                                 )}
-                                                {!isRepresentative && (
+                                                {!isRepresentative && activeTab === 'deleted' && (
+                                                    <button onClick={() => handleRestoreRMA(rma.id, rma.rmaNumber)} className="btn-action btn-archive" title="Restore RMA" style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>
+                                                        <span className="btn-icon">♻️</span>
+                                                        <span className="btn-text">Restore</span>
+                                                    </button>
+                                                )}
+                                                {!isRepresentative && activeTab !== 'deleted' && (
                                                     <button onClick={() => handleDeleteRMA(rma.id, rma.rmaNumber)} className="btn-action btn-remove" title="Delete Booking">
                                                         <span className="btn-icon">🗑️</span>
                                                         <span className="btn-text">Remove</span>
@@ -747,11 +813,11 @@ export default function AdminDashboard() {
             </div>
 
             <footer style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.8rem' }}>
-                <div>Total Active: <strong>{activeRmas.length}</strong> | Total Archived: <strong>{archivedRmas.length}</strong></div>
+                <div>Total Active: <strong>{activeRmas.length}</strong> | Total Archived: <strong>{archivedRmas.length}</strong> | Total Deleted: <strong>{deletedRmas.length}</strong></div>
                 <div className="pagination">
                     <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Prev</button>
                     <span>Page {page}</span>
-                    <button onClick={() => setPage(p => p + 1)} disabled={(activeTab === 'active' ? activeRmas : archivedRmas).length < 20}>Next</button>
+                    <button onClick={() => setPage(p => p + 1)} disabled={currentRmas.length < 20}>Next</button>
                 </div>
             </footer>
         </div>

@@ -18,6 +18,7 @@ exports.createRMA = async (req, res) => {
             rmaNumber,
             status: 'Yet to be actioned',
             archived: false,
+            deleted: false,
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -219,16 +220,30 @@ exports.importRMAs = async (req, res) => {
 exports.getRMAs = async (req, res) => {
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
-        const { search = '', archived = 'false' } = req.query;
+        const { search = '', archived = 'false', deleted = 'false' } = req.query;
         let query = db.collection('rmas').orderBy('createdAt', 'desc');
 
         const isArchived = archived === 'true';
+        const isDeleted = deleted === 'true';
 
         const snapshot = await query.get();
         let rmas = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             const rmaIsArchived = data.archived === true;
+            const rmaIsDeleted = data.deleted === true;
+
+            if (isDeleted) {
+                if (rmaIsDeleted) {
+                    rmas.push({ id: doc.id, ...data });
+                }
+                return;
+            }
+
+            if (rmaIsDeleted) {
+                return;
+            }
+
             if (rmaIsArchived === isArchived) {
                 rmas.push({ id: doc.id, ...data });
             }
@@ -353,7 +368,7 @@ exports.updateRMA = async (req, res) => {
 
 exports.deleteRMA = async (req, res) => {
     const { id } = req.params;
-    console.log(`🗑️ Attempting to delete RMA with ID: ${id}`);
+    console.log(`🗑️ Attempting soft delete for RMA ID: ${id}`);
     try {
         const rmaRef = db.collection('rmas').doc(id);
         const doc = await rmaRef.get();
@@ -362,9 +377,17 @@ exports.deleteRMA = async (req, res) => {
             return res.status(404).json({ error: "RMA not found" });
         }
 
-        await rmaRef.delete();
-        console.log(`✓ RMA deleted successfully: ${id}`);
-        res.json({ message: "RMA deleted successfully" });
+        const updates = {
+            deleted: true,
+            deletedAt: new Date(),
+            archived: false,
+            archivedAt: null,
+            updatedAt: new Date()
+        };
+
+        await rmaRef.update(updates);
+        console.log(`✓ RMA moved to Deleted RMAs: ${id}`);
+        res.json({ message: "RMA moved to Deleted RMAs successfully", ...updates });
     } catch (err) {
         console.error(`✗ Deletion error for ${id}:`, err.message);
         res.status(500).json({ error: err.message });
@@ -372,8 +395,9 @@ exports.deleteRMA = async (req, res) => {
 };
 
 exports.deleteAllRMAs = async (req, res) => {
-    const { archived = 'false' } = req.query;
+    const { archived = 'false', deleted = 'false' } = req.query;
     const isArchived = archived === 'true';
+    const isDeleted = deleted === 'true';
     console.log(` [Bulk Delete] Request received. Target: ${isArchived ? 'ARCHIVED' : 'ACTIVE'} records.`);
 
     try {
@@ -386,8 +410,17 @@ exports.deleteAllRMAs = async (req, res) => {
         const docsToDelete = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            const rmaIsArchived = data.archived === true; // Treat missing/null/false as false
-            if (rmaIsArchived === isArchived) {
+            const rmaIsArchived = data.archived === true;
+            const rmaIsDeleted = data.deleted === true;
+
+            if (isDeleted) {
+                if (rmaIsDeleted) {
+                    docsToDelete.push(doc);
+                }
+                return;
+            }
+
+            if (!rmaIsDeleted && rmaIsArchived === isArchived) {
                 docsToDelete.push(doc);
             }
         });
@@ -406,7 +439,7 @@ exports.deleteAllRMAs = async (req, res) => {
 
         await batch.commit();
         console.log(` [Bulk Delete] Successfully deleted ${docsToDelete.length} records.`);
-        res.json({ message: `Successfully deleted ${docsToDelete.length} ${isArchived ? 'archived' : 'active'} records.` });
+        res.json({ message: `Successfully deleted ${docsToDelete.length} records.` });
     } catch (err) {
         console.error(' [Bulk Delete] Error:', err);
         res.status(500).json({ error: err.message });
@@ -427,6 +460,8 @@ exports.archiveRMA = async (req, res) => {
         const updates = {
             archived: true,
             archivedAt: new Date(),
+            deleted: false,
+            deletedAt: null,
             updatedAt: new Date()
         };
 
@@ -453,6 +488,8 @@ exports.unarchiveRMA = async (req, res) => {
         const updates = {
             archived: false,
             archivedAt: null,
+            deleted: false,
+            deletedAt: null,
             updatedAt: new Date()
         };
 
@@ -461,6 +498,32 @@ exports.unarchiveRMA = async (req, res) => {
         res.json({ message: "RMA unarchived successfully", ...updates });
     } catch (err) {
         console.error(`✗ Unarchive error for ${id}:`, err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.restoreRMA = async (req, res) => {
+    const { id } = req.params;
+    console.log(`♻️ Attempting to restore RMA with ID: ${id}`);
+    try {
+        const rmaRef = db.collection('rmas').doc(id);
+        const doc = await rmaRef.get();
+        if (!doc.exists) {
+            console.error(`✗ RMA not found: ${id}`);
+            return res.status(404).json({ error: "RMA not found" });
+        }
+
+        const updates = {
+            deleted: false,
+            deletedAt: null,
+            updatedAt: new Date()
+        };
+
+        await rmaRef.update(updates);
+        console.log(`✓ RMA restored successfully: ${id}`);
+        res.json({ message: "RMA restored successfully", ...updates });
+    } catch (err) {
+        console.error(`✗ Restore error for ${id}:`, err.message);
         res.status(500).json({ error: err.message });
     }
 };
