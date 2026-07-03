@@ -1,20 +1,69 @@
 const { db } = require('../config/firebase');
 const { sendEmail } = require('../services/emailService');
+const { deleteCloudinaryAssets, isCloudinaryConfigured, uploadFilesToCloudinary } = require('../services/cloudinaryService');
 const { Parser } = require('json2csv');
 const csv = require('csv-parser');
 const fs = require('fs');
 
+const cleanupUploadedFiles = (files = []) => {
+    files.forEach(file => {
+        if (!file || !file.path) return;
+
+        fs.unlink(file.path, (err) => {
+            if (err && err.code !== 'ENOENT') {
+                console.error(`[CreateRMA] Failed to remove uploaded file ${file.path}:`, err.message);
+            }
+        });
+    });
+};
+
 exports.createRMA = async (req, res) => {
     console.log('>>>>>>>>>>>>>> RECEIVED RMA SUBMISSION <<<<<<<<<<<<<<<');
+    let uploadedFiles = [];
+    let uploadedCloudinaryAssets = [];
+
     try {
         if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const faultMediaFiles = req.files?.faultMedia || [];
+        const proofOfPurchaseFiles = req.files?.proofOfPurchase || [];
+        uploadedFiles = [...faultMediaFiles, ...proofOfPurchaseFiles];
 
         const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomPart = Math.floor(1000 + Math.random() * 9000);
         const rmaNumber = `BKN-${datePart}-${randomPart}`;
 
+        let faultMediaAttachments = faultMediaFiles.map(file => ({
+            originalName: file.originalname,
+            storedName: file.filename,
+            mimeType: file.mimetype,
+            size: file.size,
+            storageProvider: 'temporary_local'
+        }));
+
+        let proofOfPurchaseAttachments = proofOfPurchaseFiles.map(file => ({
+            originalName: file.originalname,
+            storedName: file.filename,
+            mimeType: file.mimetype,
+            size: file.size,
+            storageProvider: 'temporary_local'
+        }));
+
+        if (isCloudinaryConfigured() && uploadedFiles.length > 0) {
+            const [faultMediaUploads, proofOfPurchaseUploads] = await Promise.all([
+                uploadFilesToCloudinary(faultMediaFiles, { folder: `rmas/${rmaNumber}/fault-media` }),
+                uploadFilesToCloudinary(proofOfPurchaseFiles, { folder: `rmas/${rmaNumber}/proof-of-purchase` })
+            ]);
+
+            faultMediaAttachments = faultMediaUploads;
+            proofOfPurchaseAttachments = proofOfPurchaseUploads;
+            uploadedCloudinaryAssets = [...faultMediaUploads, ...proofOfPurchaseUploads];
+        }
+
         const rmaData = {
             ...req.body,
+            faultMediaAttachments,
+            proofOfPurchaseAttachments,
             rmaNumber,
             status: 'Yet to be actioned',
             archived: false,
@@ -40,13 +89,22 @@ exports.createRMA = async (req, res) => {
 
         console.log(`[CreateRMA] Preparing to send emails. Admin: ${process.env.ADMIN_EMAIL}, User: ${rmaData.email}`);
 
+        const notificationPromises = [];
+        const adminAttachments = uploadedFiles.map(file => ({
+            filename: file.originalname,
+            path: file.path,
+            contentType: file.mimetype
+        }));
+
         // Notify Admin
         if (process.env.ADMIN_EMAIL) {
             console.log(`[CreateRMA] >> Triggering Admin Notification email...`);
-            sendEmail(process.env.ADMIN_EMAIL, 'adminNotification', emailData).then(() => {
-                console.log(`[CreateRMA] >> Admin Notification sent.`);
-            }).catch(err =>
-                console.error('[CreateRMA] !! Admin email error:', err.message)
+            notificationPromises.push(
+                sendEmail(process.env.ADMIN_EMAIL, 'adminNotification', emailData, { attachments: adminAttachments }).then(() => {
+                    console.log(`[CreateRMA] >> Admin Notification sent.`);
+                }).catch(err =>
+                    console.error('[CreateRMA] !! Admin email error:', err.message)
+                )
             );
         } else {
             console.warn('[CreateRMA] !! Skipping Admin Notification: process.env.ADMIN_EMAIL is not set.');
@@ -55,18 +113,32 @@ exports.createRMA = async (req, res) => {
         // Notify User
         if (rmaData.email) {
             console.log(`[CreateRMA] >> Triggering User Confirmation email...`);
-            sendEmail(rmaData.email, 'rmaSubmitted', emailData).then(() => {
-                console.log(`[CreateRMA] >> User Confirmation sent.`);
-            }).catch(err =>
-                console.error('[CreateRMA] !! User email error:', err.message)
+            notificationPromises.push(
+                sendEmail(rmaData.email, 'rmaSubmitted', emailData).then(() => {
+                    console.log(`[CreateRMA] >> User Confirmation sent.`);
+                }).catch(err =>
+                    console.error('[CreateRMA] !! User email error:', err.message)
+                )
             );
         } else {
             console.warn('[CreateRMA] !! Skipping User Confirmation: rmaData.email is missing.');
         }
 
+        if (notificationPromises.length > 0) {
+            Promise.allSettled(notificationPromises).finally(() => cleanupUploadedFiles(uploadedFiles));
+        } else {
+            cleanupUploadedFiles(uploadedFiles);
+        }
+
         res.status(201).json({ id: docRef.id, ...rmaData });
     } catch (err) {
         console.error('Create RMA error:', err);
+        cleanupUploadedFiles(uploadedFiles);
+        if (uploadedCloudinaryAssets.length > 0) {
+            deleteCloudinaryAssets(uploadedCloudinaryAssets).catch((cleanupError) => {
+                console.error('Cloudinary cleanup error:', cleanupError.message);
+            });
+        }
         res.status(400).json({ error: err.message });
     }
 };

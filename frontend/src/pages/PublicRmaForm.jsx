@@ -33,6 +33,31 @@ const STEPS = [
     { id: 4, title: 'Package' }
 ];
 
+const createInitialFormData = () => ({
+    email: '',
+    name: '',
+    companyName: '',
+    contactPhone: '',
+    serialNumber: '',
+    modelName: '',
+    otherModelName: '',
+    faultDescription: '',
+    customerReference: '',
+    requireLabel: 'No',
+    address: '',
+    suburb: '',
+    state: '',
+    postCode: '',
+    contentsOfPackage: '',
+    weight: '',
+    width: '',
+    height: '',
+    length: '',
+    isImageRelated: 'No',
+    mediaLeftOnDevice: 'No',
+    deviceOlderThanTwoYears: 'No'
+});
+
 const SearchableSelect = ({ name, value, options, onChange, placeholder, required }) => {
     const [searchTerm, setSearchTerm] = useState(value || '');
     const [isOpen, setIsOpen] = useState(false);
@@ -99,29 +124,11 @@ const SearchableSelect = ({ name, value, options, onChange, placeholder, require
 
 const PublicRmaForm = () => {
     const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState({
-        email: '',
-        name: '',
-        companyName: '',
-        contactPhone: '',
-        serialNumber: '',
-        modelName: '',
-        otherModelName: '',
-        faultDescription: '',
-        customerReference: '',
-        requireLabel: 'No',
-        address: '',
-        suburb: '',
-        state: '',
-        postCode: '',
-        contentsOfPackage: '',
-        weight: '',
-        width: '',
-        height: '',
-        length: ''
-    });
-
+    const [formData, setFormData] = useState(createInitialFormData);
     const [status, setStatus] = useState({ loading: false, success: false, error: null });
+    const [showMediaDialog, setShowMediaDialog] = useState(false);
+    const [faultMediaFiles, setFaultMediaFiles] = useState([]);
+    const [proofOfPurchaseFiles, setProofOfPurchaseFiles] = useState([]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -130,6 +137,40 @@ const PublicRmaForm = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileChange = (e) => {
+        const { name, files } = e.target;
+        const selectedFiles = Array.from(files || []);
+
+        if (name === 'faultMedia') {
+            setFaultMediaFiles(selectedFiles);
+        }
+
+        if (name === 'proofOfPurchase') {
+            setProofOfPurchaseFiles(selectedFiles);
+        }
+    };
+
+    const handleImageRelatedChange = (value) => {
+        setFormData(prev => ({ ...prev, isImageRelated: value }));
+
+        if (value === 'Yes') {
+            setShowMediaDialog(true);
+        } else {
+            setShowMediaDialog(false);
+        }
+    };
+
+    const appendMediaNoteToDescription = () => {
+        const note = 'Image/video of the fault has been captured and left on the device.';
+
+        setFormData(prev => ({
+            ...prev,
+            faultDescription: prev.faultDescription.includes(note)
+                ? prev.faultDescription
+                : `${prev.faultDescription}${prev.faultDescription ? '\n\n' : ''}${note}`
+        }));
     };
 
     const validateStep = (step) => {
@@ -175,17 +216,28 @@ const PublicRmaForm = () => {
 
         setStatus({ loading: true, success: false, error: null });
 
-        const finalData = { ...formData };
+        const finalData = {
+            ...formData,
+            faultMediaAttachmentNames: faultMediaFiles.map(file => file.name).join(', '),
+            proofOfPurchaseAttachmentNames: proofOfPurchaseFiles.map(file => file.name).join(', ')
+        };
+
         if (formData.modelName === 'Other') {
             finalData.modelName = formData.otherModelName;
         }
         delete finalData.otherModelName;
 
         try {
+            const payload = new FormData();
+            Object.entries(finalData).forEach(([key, value]) => {
+                payload.append(key, value ?? '');
+            });
+            faultMediaFiles.forEach(file => payload.append('faultMedia', file));
+            proofOfPurchaseFiles.forEach(file => payload.append('proofOfPurchase', file));
+
             const response = await fetch(`${API_BASE_URL}/api/rma`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalData)
+                body: payload
             });
 
             if (!response.ok) {
@@ -194,13 +246,10 @@ const PublicRmaForm = () => {
             }
 
             setStatus({ loading: false, success: true, error: null });
-            setFormData({
-                email: '', name: '', companyName: '', contactPhone: '',
-                serialNumber: '', modelName: '', otherModelName: '', faultDescription: '',
-                customerReference: '', requireLabel: 'No', address: '',
-                suburb: '', state: '', postCode: '', contentsOfPackage: '',
-                weight: '', width: '', height: '', length: ''
-            });
+            setFormData(createInitialFormData());
+            setFaultMediaFiles([]);
+            setProofOfPurchaseFiles([]);
+            setShowMediaDialog(false);
             setCurrentStep(1);
         } catch (err) {
             setStatus({ loading: false, success: false, error: err.message });
@@ -208,25 +257,6 @@ const PublicRmaForm = () => {
     };
 
 
-
-    const formatDate = (dateValue) => {
-        if (!dateValue) return '-';
-        try {
-            let date;
-            if (dateValue._seconds !== undefined) {
-                date = new Date(dateValue._seconds * 1000);
-            } else if (dateValue && typeof dateValue === 'object' && dateValue.toDate) {
-                date = dateValue.toDate();
-            } else {
-                date = new Date(dateValue);
-            }
-            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
-        } catch (e) {
-            return '-';
-        }
-    };
-
-    // formatDate is used by the modal component
 
     if (status.success) {
         return (
@@ -302,9 +332,40 @@ const PublicRmaForm = () => {
                         <div className="rma-google-card rma-form-section-card">
                             <h3 className="section-title">Product Details</h3>
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label>Serial Number*</label>
-                                    <input type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} required />
+                                <div className="field-pair">
+                                    <div className="form-group">
+                                        <label>Serial Number*</label>
+                                        <input type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} required />
+                                    </div>
+                                    <div className="side-prompt-card">
+                                        <label>Device older than 2 years?</label>
+                                        <select
+                                            name="deviceOlderThanTwoYears"
+                                            value={formData.deviceOlderThanTwoYears}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                        <p className="field-helper">Optional. If yes, proof of purchase can be attached here.</p>
+                                        {formData.deviceOlderThanTwoYears === 'Yes' && (
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    name="proofOfPurchase"
+                                                    accept=".pdf,image/*"
+                                                    multiple
+                                                    onChange={handleFileChange}
+                                                />
+                                                <p className="field-helper">You can still submit the form without adding a file.</p>
+                                                {proofOfPurchaseFiles.length > 0 && (
+                                                    <p className="selected-file-list">
+                                                        Selected: {proofOfPurchaseFiles.map(file => file.name).join(', ')}
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>Model Name*</label>
@@ -323,9 +384,48 @@ const PublicRmaForm = () => {
                                         <input type="text" name="otherModelName" value={formData.otherModelName} onChange={handleChange} required />
                                     </div>
                                 )}
-                                <div className="form-group">
-                                    <label>Fault Description*</label>
-                                    <textarea name="faultDescription" value={formData.faultDescription} onChange={handleChange} required />
+                                <div className="field-pair field-pair-top">
+                                    <div className="form-group">
+                                        <label>Fault Description*</label>
+                                        <textarea name="faultDescription" value={formData.faultDescription} onChange={handleChange} required />
+                                    </div>
+                                    <div className="side-prompt-card">
+                                        <label>Is the issue image-related?</label>
+                                        <select
+                                            name="isImageRelated"
+                                            value={formData.isImageRelated}
+                                            onChange={(e) => handleImageRelatedChange(e.target.value)}
+                                        >
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                        <p className="field-helper">
+                                            Optional. If yes, a dialog will let you attach a picture/video or note that the media was left on the device.
+                                        </p>
+                                        {formData.isImageRelated === 'Yes' && (
+                                            <>
+                                                <div className="inline-action-row">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-dialog"
+                                                        onClick={() => setShowMediaDialog(true)}
+                                                    >
+                                                        Open attachment dialog
+                                                    </button>
+                                                </div>
+                                                {faultMediaFiles.length > 0 && (
+                                                    <p className="selected-file-list">
+                                                        Selected: {faultMediaFiles.map(file => file.name).join(', ')}
+                                                    </p>
+                                                )}
+                                                {formData.mediaLeftOnDevice === 'Yes' && (
+                                                    <p className="selected-file-list">
+                                                        Marked as captured and left on the device.
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>Customer Reference</label>
@@ -425,6 +525,66 @@ const PublicRmaForm = () => {
                         )}
                     </div>
                 </form>
+
+                {showMediaDialog && (
+                    <div className="assist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="media-dialog-title">
+                        <div className="assist-modal-card">
+                            <div className="assist-modal-header">
+                                <h4 id="media-dialog-title">Fault image / video</h4>
+                                <button
+                                    type="button"
+                                    className="assist-modal-close"
+                                    aria-label="Close image attachment dialog"
+                                    onClick={() => setShowMediaDialog(false)}
+                                >
+                                    x
+                                </button>
+                            </div>
+                            <div className="assist-modal-body">
+                                <div className="form-group">
+                                    <label>Attach picture or video</label>
+                                    <input
+                                        type="file"
+                                        name="faultMedia"
+                                        accept="image/*,video/*"
+                                        multiple
+                                        onChange={handleFileChange}
+                                    />
+                                    <p className="field-helper">Optional. You can continue without attaching any files.</p>
+                                    {faultMediaFiles.length > 0 && (
+                                        <p className="selected-file-list">
+                                            Selected: {faultMediaFiles.map(file => file.name).join(', ')}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="form-group">
+                                    <label>Was the fault image/video captured and left on the device?</label>
+                                    <select name="mediaLeftOnDevice" value={formData.mediaLeftOnDevice} onChange={handleChange}>
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                                {formData.mediaLeftOnDevice === 'Yes' && (
+                                    <div className="dialog-note-box">
+                                        <p>Please mention this in the fault description so the team knows where to look.</p>
+                                        <button
+                                            type="button"
+                                            className="btn btn-prev btn-inline-action"
+                                            onClick={appendMediaNoteToDescription}
+                                        >
+                                            Add note to fault description
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="assist-modal-footer">
+                                <button type="button" className="btn btn-next" onClick={() => setShowMediaDialog(false)}>
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <p className="footer-note">
                     Secure Form Submission System

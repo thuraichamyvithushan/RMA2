@@ -31,6 +31,7 @@ export default function AdminDashboard() {
     const [page, setPage] = useState(1);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [selectedRMA, setSelectedRMA] = useState(null);
+    const [previewAttachment, setPreviewAttachment] = useState(null);
     const { user, role } = useAuth();
     const isRepresentative = role === 'representative';
     const fileInputRef = useRef(null);
@@ -193,7 +194,7 @@ export default function AdminDashboard() {
             } else {
                 alert(data.error || 'Update failed');
             }
-        } catch (err) {
+        } catch {
             alert('Network error');
         }
     };
@@ -215,7 +216,7 @@ export default function AdminDashboard() {
                 return true;
             }
             return false;
-        } catch (err) {
+        } catch {
             return false;
         }
     };
@@ -387,7 +388,7 @@ export default function AdminDashboard() {
                 date = new Date(dateValue);
             }
             return isNaN(date.getTime()) ? '-' : date.toLocaleString();
-        } catch (e) {
+        } catch {
             return '-';
         }
     };
@@ -404,7 +405,7 @@ export default function AdminDashboard() {
                 date = new Date(dateValue);
             }
             return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
-        } catch (e) {
+        } catch {
             return '';
         }
     };
@@ -423,6 +424,54 @@ export default function AdminDashboard() {
             : activeTab === 'archived'
                 ? archivedRmas
                 : deletedRmas;
+
+    const getAttachments = (attachments) => Array.isArray(attachments) ? attachments.filter(Boolean) : [];
+
+    const normalizeAttachment = (attachment) => {
+        if (!attachment) return null;
+        if (typeof attachment === 'string') {
+            return {
+                url: attachment,
+                secureUrl: attachment,
+                originalName: attachment.split('/').pop() || 'Attachment'
+            };
+        }
+        return attachment;
+    };
+
+    const getAttachmentLabel = (attachment) => {
+        const normalized = normalizeAttachment(attachment);
+        return normalized?.originalName || normalized?.publicId || normalized?.storedName || 'Attachment';
+    };
+
+    const getAttachmentUrl = (attachment) => {
+        const normalized = normalizeAttachment(attachment);
+        return normalized?.secureUrl || normalized?.url || '';
+    };
+
+    const isImageAttachment = (attachment) => {
+        const normalized = normalizeAttachment(attachment);
+        const mimeType = normalized?.mimeType || '';
+        const url = getAttachmentUrl(normalized).toLowerCase();
+        return mimeType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/.test(url);
+    };
+
+    const isVideoAttachment = (attachment) => {
+        const normalized = normalizeAttachment(attachment);
+        const mimeType = normalized?.mimeType || '';
+        const url = getAttachmentUrl(normalized).toLowerCase();
+        return mimeType.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi)(\?|$)/.test(url);
+    };
+
+    const getAttachmentSummary = (attachments, fallbackNames = '') => {
+        const normalized = getAttachments(attachments);
+
+        if (normalized.length > 0) {
+            return `${normalized.length} file${normalized.length === 1 ? '' : 's'}`;
+        }
+
+        return fallbackNames || '-';
+    };
 
     const TableInput = ({ rmaId, field, value, type = 'text', width = '200px' }) => {
         const [localValue, setLocalValue] = useState(value || '');
@@ -472,6 +521,52 @@ export default function AdminDashboard() {
             </div>
         );
 
+        const AttachmentField = ({ label, attachments, fallbackNames }) => {
+            const normalized = getAttachments(attachments);
+
+            return (
+                <div className="data-item">
+                    <label>{label}</label>
+                    <div>
+                        {normalized.length > 0 ? (
+                            <div className="attachment-modal-list">
+                                {normalized.map((attachment, index) => {
+                                    const url = getAttachmentUrl(attachment);
+                                    const attachmentLabel = getAttachmentLabel(attachment);
+
+                                    return url && isImageAttachment(attachment) ? (
+                                        <button
+                                            key={`${attachmentLabel}-${index}`}
+                                            type="button"
+                                            className="attachment-modal-thumbnail-button"
+                                            onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                        >
+                                            <img src={url} alt={attachmentLabel} className="attachment-modal-thumbnail" />
+                                            <span>{attachmentLabel}</span>
+                                        </button>
+                                    ) : url ? (
+                                        <button
+                                            key={`${attachmentLabel}-${index}`}
+                                            type="button"
+                                            className="attachment-link-button"
+                                            onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                            title={attachmentLabel}
+                                        >
+                                            {attachmentLabel}
+                                        </button>
+                                    ) : (
+                                        <span key={`${attachmentLabel}-${index}`}>{attachmentLabel}</span>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            fallbackNames || '-'
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
         return (
             <div className="modern-modal-overlay">
                 <div className="modern-modal-container">
@@ -498,9 +593,25 @@ export default function AdminDashboard() {
                         <Section title="Product & Issue">
                             <Field label="Model Name" value={rma.modelName} />
                             <Field label="Serial Number" value={rma.serialNumber} />
+                            <Field label="Device Older Than 2 Years" value={rma.deviceOlderThanTwoYears} />
                             <Field label="Fault Description" value={rma.faultDescription} />
+                            <Field label="Issue Image-Related" value={rma.isImageRelated} />
+                            <Field label="Media Left On Device" value={rma.mediaLeftOnDevice} />
                             <Field label="Repair Description" value={rma.repairDescription} />
                             <Field label="Package Contents" value={rma.contentsOfPackage} />
+                        </Section>
+
+                        <Section title="Attachments">
+                            <AttachmentField
+                                label="Proof of Purchase"
+                                attachments={rma.proofOfPurchaseAttachments}
+                                fallbackNames={rma.proofOfPurchaseAttachmentNames}
+                            />
+                            <AttachmentField
+                                label="Fault Media"
+                                attachments={rma.faultMediaAttachments}
+                                fallbackNames={rma.faultMediaAttachmentNames}
+                            />
                         </Section>
 
                         <Section title="Email Sent Timestamps">
@@ -526,9 +637,46 @@ export default function AdminDashboard() {
         );
     };
 
+    const AttachmentPreviewModal = ({ attachment, onClose }) => {
+        if (!attachment) return null;
+
+        const url = getAttachmentUrl(attachment);
+        const attachmentLabel = getAttachmentLabel(attachment);
+
+        return (
+            <div className="modern-modal-overlay" onClick={onClose}>
+                <div className="attachment-preview-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <div>
+                            <h2 style={{ fontSize: '1.1rem', color: '#0f172a', margin: 0, fontWeight: '700' }}>
+                                Attachment Preview
+                            </h2>
+                            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0' }}>{attachmentLabel}</p>
+                        </div>
+                        <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>&times;</button>
+                    </div>
+
+                    <div className="attachment-preview-body">
+                        {isImageAttachment(attachment) ? (
+                            <img src={url} alt={attachmentLabel} className="attachment-preview-image" />
+                        ) : isVideoAttachment(attachment) ? (
+                            <video src={url} controls className="attachment-preview-video" />
+                        ) : (
+                            <div className="attachment-preview-fallback">
+                                <p>This attachment cannot be previewed inline.</p>
+                                <a href={url} target="_blank" rel="noreferrer">Open file</a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="admin-dashboard-wrapper">
             {selectedRMA && <DetailsModal rma={selectedRMA} onClose={() => setSelectedRMA(null)} />}
+            {previewAttachment && <AttachmentPreviewModal attachment={previewAttachment} onClose={() => setPreviewAttachment(null)} />}
 
             <input
                 type="file"
@@ -604,9 +752,14 @@ export default function AdminDashboard() {
                                 <th style={{ minWidth: '160px' }}>Assign Team</th>
                                 <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>Product Received</th>
                                 <th style={{ minWidth: '250px' }}>Fault Description</th>
+                                <th style={{ minWidth: '110px' }}>Image Related?</th>
+                                <th style={{ minWidth: '120px' }}>Media On Device?</th>
+                                <th style={{ minWidth: '170px' }}>Image</th>
                                 <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>Investigation</th>
                                 <th style={{ minWidth: '180px' }}>Huntsman Status</th>
                                 <th style={{ minWidth: '150px' }}>Serial Number</th>
+                                <th style={{ minWidth: '130px' }}>Older Than 2 Years?</th>
+                                <th style={{ minWidth: '160px' }}>Proof of Purchase</th>
                                 <th style={{ minWidth: '250px' }}>Repair Notes</th>
                                 <th style={{ textAlign: 'center', backgroundColor: '#ef4444', color: 'white' }}>In Progress</th>
                                 <th style={{ minWidth: '150px' }}>Spare Parts</th>
@@ -630,10 +783,10 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing data...</td></tr>
+                                <tr><td colSpan="43" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>Syncing data...</td></tr>
                             ) : currentRmas.length === 0 ? (
                                 <tr>
-                                    <td colSpan="37" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
+                                    <td colSpan="43" style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
                                         {isRepresentative && !search.trim()
                                             ? "Please enter a search term to view RMA records."
                                             : "No records found matching your search."
@@ -714,6 +867,56 @@ export default function AdminDashboard() {
                                             <input type="checkbox" checked={!!rma.productReceived} onChange={() => handleUpdateStatus(rma.id, 'productReceived')} disabled={!!rma.productReceived || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="faultDescription" value={rma.faultDescription} width="250px" /></td>
+                                        <td>{rma.isImageRelated || 'No'}</td>
+                                        <td>{rma.mediaLeftOnDevice || 'No'}</td>
+                                        <td>
+                                            {getAttachments(rma.faultMediaAttachments).length > 0 ? (
+                                                <div className="attachment-thumbnail-list">
+                                                    {getAttachments(rma.faultMediaAttachments).map((attachment, index) => {
+                                                        const url = getAttachmentUrl(attachment);
+                                                        const attachmentLabel = getAttachmentLabel(attachment);
+
+                                                        return url && isImageAttachment(attachment) ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-thumbnail-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                <img src={url} alt={attachmentLabel} className="attachment-thumbnail-image" />
+                                                            </button>
+                                                        ) : url && isVideoAttachment(attachment) ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-fallback-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                Preview video
+                                                            </button>
+                                                        ) : url ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-fallback-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                Open file
+                                                            </button>
+                                                        ) : (
+                                                            <span key={`${attachmentLabel}-${index}`}>
+                                                                {attachmentLabel}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                getAttachmentSummary(rma.faultMediaAttachments, rma.faultMediaAttachmentNames)
+                                            )}
+                                        </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <input type="checkbox" checked={!!rma.investigationUnderway} onChange={() => handleUpdateStatus(rma.id, 'investigationUnderway')} disabled={!!rma.investigationUnderway || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />
                                         </td>
@@ -730,6 +933,55 @@ export default function AdminDashboard() {
                                             </select>
                                         </td>
                                         <td><TableInput rmaId={rma.id} field="serialNumber" value={rma.serialNumber} width="140px" /></td>
+                                        <td>{rma.deviceOlderThanTwoYears || 'No'}</td>
+                                        <td>
+                                            {getAttachments(rma.proofOfPurchaseAttachments).length > 0 ? (
+                                                <div className="attachment-thumbnail-list">
+                                                    {getAttachments(rma.proofOfPurchaseAttachments).map((attachment, index) => {
+                                                        const url = getAttachmentUrl(attachment);
+                                                        const attachmentLabel = getAttachmentLabel(attachment);
+
+                                                        return url && isImageAttachment(attachment) ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-thumbnail-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                <img src={url} alt={attachmentLabel} className="attachment-thumbnail-image" />
+                                                            </button>
+                                                        ) : url && isVideoAttachment(attachment) ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-fallback-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                Preview video
+                                                            </button>
+                                                        ) : url ? (
+                                                            <button
+                                                                key={`${url}-${index}`}
+                                                                type="button"
+                                                                className="attachment-fallback-button"
+                                                                onClick={() => setPreviewAttachment(normalizeAttachment(attachment))}
+                                                                title={attachmentLabel}
+                                                            >
+                                                                Open file
+                                                            </button>
+                                                        ) : (
+                                                            <span key={`${attachmentLabel}-${index}`}>
+                                                                {attachmentLabel}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                getAttachmentSummary(rma.proofOfPurchaseAttachments, rma.proofOfPurchaseAttachmentNames)
+                                            )}
+                                        </td>
                                         <td><TableInput rmaId={rma.id} field="repairDescription" value={rma.repairDescription} width="250px" /></td>
                                         <td style={{ textAlign: 'center' }}>
                                             <input type="checkbox" checked={!!rma.inProgress} onChange={() => handleUpdateStatus(rma.id, 'inProgress')} disabled={!!rma.inProgress || isRepresentative || activeTab === 'archived'} className="modern-checkbox" />

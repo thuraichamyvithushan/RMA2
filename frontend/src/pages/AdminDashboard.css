@@ -415,6 +415,124 @@
     font-weight: 600;
 }
 
+.attachment-thumbnail-list,
+.attachment-modal-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.attachment-thumbnail-button,
+.attachment-modal-thumbnail-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.attachment-thumbnail-button {
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dbe4ee;
+    background: #f8fafc;
+}
+
+.attachment-thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.attachment-modal-thumbnail-button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: #0f172a;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.attachment-modal-thumbnail {
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #dbe4ee;
+    background: #f8fafc;
+}
+
+.attachment-link-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: #2563eb;
+    text-align: left;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    word-break: break-all;
+}
+
+.attachment-fallback-button {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.attachment-fallback-button:hover,
+.attachment-thumbnail-button:hover,
+.attachment-modal-thumbnail-button:hover {
+    transform: translateY(-1px);
+}
+
+.attachment-preview-modal {
+    background: #ffffff;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.attachment-preview-body {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f172a;
+    min-height: 55vh;
+}
+
+.attachment-preview-image,
+.attachment-preview-video {
+    max-width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #020617;
+}
+
+.attachment-preview-fallback {
+    color: #e2e8f0;
+    text-align: center;
+}
+
+.attachment-preview-fallback a {
+    color: #93c5fd;
+}
+
 /* Tabs Styling */
 .dashboard-tabs {
     display: flex;

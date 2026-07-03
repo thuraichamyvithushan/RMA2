@@ -185,7 +185,7 @@ const getHtmlBody = (step, data) => {
   return '';
 };
 
-const sendEmail = async (to, step, data) => {
+const sendEmail = async (to, step, data, options = {}) => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn(`[EmailService] EMAIL_USER or EMAIL_PASS not set! Emails will be MOCKED (not sent).`);
     console.log(`[EmailService] [MOCK] Triggering ${step} to ${to}`);
@@ -202,6 +202,10 @@ const sendEmail = async (to, step, data) => {
     subject: getSubject(step, subjectIdentifier),
     html: getHtmlBody(step, data)
   };
+
+  if (options.attachments && options.attachments.length > 0) {
+    mailOptions.attachments = options.attachments;
+  }
 
   try {
     await transporter.sendMail(mailOptions);

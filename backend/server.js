@@ -51,7 +51,10 @@ app.get('/api/auth/register', (req, res) => res.status(405).json({ error: "Metho
 app.post('/api/auth/sync', authController.protect, authController.syncUser);
 
 // Public
-app.post('/api/rma', rmaController.createRMA);
+app.post('/api/rma', upload.fields([
+    { name: 'faultMedia', maxCount: 5 },
+    { name: 'proofOfPurchase', maxCount: 3 }
+]), rmaController.createRMA);
 app.get('/api/rma/lookup', rmaController.lookupRMA);
 
 // Admin (Protected)
