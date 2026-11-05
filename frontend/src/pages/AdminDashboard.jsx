@@ -387,7 +387,10 @@ export default function AdminDashboard() {
             } else {
                 date = new Date(dateValue);
             }
-            return isNaN(date.getTime()) ? '-' : date.toLocaleString();
+            return isNaN(date.getTime()) ? '-' : date.toLocaleString('en-AU', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+            });
         } catch {
             return '-';
         }

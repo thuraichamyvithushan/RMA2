@@ -191,7 +191,9 @@ export default function HuntsmanAnalytics() {
                                                     if (dateVal.seconds) date = new Date(dateVal.seconds * 1000);
                                                     else if (dateVal._seconds) date = new Date(dateVal._seconds * 1000);
                                                     else date = new Date(dateVal);
-                                                    return isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+                                                    return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('en-AU', {
+                                                        day: '2-digit', month: '2-digit', year: 'numeric'
+                                                    });
                                                 })()}</td>
                                             </tr>
                                         ))

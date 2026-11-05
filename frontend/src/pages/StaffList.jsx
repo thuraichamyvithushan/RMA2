@@ -106,7 +106,10 @@ const StaffList = () => {
                                         </span>
                                     </td>
                                     <td className="last-signin">
-                                        {member.lastLogin ? new Date(member.lastLogin).toLocaleString() : 'Never'}
+                                        {member.lastLogin ? new Date(member.lastLogin).toLocaleString('en-AU', {
+                                            day: '2-digit', month: '2-digit', year: 'numeric',
+                                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                        }) : 'Never'}
                                     </td>
                                     <td>
                                         <div className="staff-actions">

@@ -85,7 +85,9 @@ const RmaTable = () => {
                     <tbody>
                         {rmas.map(rma => (
                             <tr key={rma.id}>
-                                <td>{new Date(rma.createdAt).toLocaleDateString()}</td>
+                                <td>{new Date(rma.createdAt).toLocaleDateString('en-AU', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric'
+                                })}</td>
                                 <td className="actions-cell">
                                     <div className="status-btns">
                                         <button

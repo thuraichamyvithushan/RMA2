@@ -92,7 +92,10 @@ export default function EmailAnalytics() {
         else if (ts._seconds) date = new Date(ts._seconds * 1000);
         else date = new Date(ts);
 
-        return isNaN(date.getTime()) ? '-' : date.toLocaleString();
+        return isNaN(date.getTime()) ? '-' : date.toLocaleString('en-AU', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+        });
     };
 
     if (loading) {

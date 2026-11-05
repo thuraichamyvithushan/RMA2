@@ -46,7 +46,9 @@ const CheckRMA = () => {
             } else {
                 date = new Date(dateValue);
             }
-            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+            return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('en-AU', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
         } catch (e) {
             return '-';
         }
