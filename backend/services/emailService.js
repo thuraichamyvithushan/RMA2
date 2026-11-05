@@ -33,7 +33,11 @@ const getSubject = (step, serial) => {
 
 const getHtmlBody = (step, data) => {
   const { sender, productSerialNo, productName, issueReported, trackingNumber, repairDescription, rmaNumber, customerEmail, contactPhone, address } = data;
-  const dateStr = new Date().toLocaleDateString();
+  const dateStr = new Date().toLocaleDateString('en-AU', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+});
 
   const signature = `
     <p>Best regards,<br>
